@@ -95,14 +95,8 @@ export default function ProductsPage() {
   });
 
   const handleAddToCart = (productId: number) => {
-    // In production, this would use the actual shared store from the host
-    // For now, we'll simulate adding to cart
     console.log('Added product to cart:', productId);
-    
-    // If you want to integrate with the host's store, you would:
-    // 1. Import the store from the host via Module Federation
-    // 2. Call the store's addToCart function here
-    // Example: useAppStore.getState().addToCart();
+    // TODO: Integrate with host's Zustand store via Module Federation
   };
 
   return (

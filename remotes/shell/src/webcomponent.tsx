@@ -41,14 +41,17 @@ class ShellWebComponent extends HTMLElement {
   }
 
   private mount() {
-    const mountPoint = document.createElement('div');
+    // Clear previous content
+    if (this.root) {
+      this.root.unmount();
+    }
+    
     this.innerHTML = '';
+    const mountPoint = document.createElement('div');
     this.appendChild(mountPoint);
 
     const theme = createTheme({
-      palette: {
-        mode: this.themeMode,
-      },
+      palette: { mode: this.themeMode },
     });
 
     const handleThemeToggle = () => {

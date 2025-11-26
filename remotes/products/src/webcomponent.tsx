@@ -27,13 +27,17 @@ class ProductsWebComponent extends HTMLElement {
   }
 
   private mount() {
+    // Clear previous content
+    if (this.root) {
+      this.root.unmount();
+    }
+    
+    this.innerHTML = '';
     const mountPoint = document.createElement('div');
     this.appendChild(mountPoint);
 
     const theme = createTheme({
-      palette: {
-        mode: this.themeMode,
-      },
+      palette: { mode: this.themeMode },
     });
 
     this.root = ReactDOM.createRoot(mountPoint);

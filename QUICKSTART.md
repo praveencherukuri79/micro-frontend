@@ -5,59 +5,53 @@ Get the Module Federation app running in 5 minutes.
 ## Prerequisites
 
 - Node.js 18+ installed
-- Windows (PowerShell scripts) or Mac/Linux (adapt commands)
+- Git (for cloning the repository)
 
-## Option 1: Quick Start (Fastest)
+## Option 1: Quick Start (Fastest) ⚡
+
+If remotes are already built:
 
 ```powershell
-# Just start servers (assumes already built)
 .\start.ps1
 ```
 
-**Requirements:** Remotes must be already built
-**Use when:** Just restarting servers, everything already built
+Opens 4 windows, starts all servers instantly.
 
----
+## Option 2: With Auto-Rebuild (Recommended) 🔥
 
-## Option 2: With Watch Mode (Recommended for Development)
+For active development:
 
 ```powershell
-# AUTO-REBUILDS on file changes!
 .\start-watch.ps1
 ```
 
-This will:
+**Features:**
+- ✅ Builds all remotes initially
+- ✅ Auto-rebuilds on file changes
+- ✅ Opens 4 PowerShell windows
+- ✅ Edit → Auto rebuild → Refresh browser
 
-1. ✅ Build all 3 remotes
-2. ✅ Start remotes in **watch mode** (auto-rebuild on changes)
-3. ✅ Start preview servers (ports 5001, 5002, 5003)
-4. ✅ Start host in dev mode (port 5000)
-5. ✅ Open 4 PowerShell windows (one per app)
+## Option 3: Build + Start
 
-**Benefits:** Edit remote files → Auto rebuilds → Just refresh browser!
-
----
-
-## Option 3: Build + Start (No Watch)
+For first-time setup or testing:
 
 ```powershell
-# One-time build (requires manual rebuild after changes)
 .\start-preview.ps1
 ```
 
-**Use when:** First time setup or don't need auto-rebuild
+**Difference:** No auto-rebuild. Manual rebuild needed after changes.
 
-### 📋 Script Comparison
+## 📋 Script Comparison
 
-| Script              | Speed      | Builds? | Watch Mode? | Use When               |
-| ------------------- | ---------- | ------- | ----------- | ---------------------- |
-| `start.ps1`         | ⚡ Instant | ❌      | ❌          | Restarting servers     |
-| `start-watch.ps1`   | 🐢 2-3 min | ✅      | ✅          | Active development     |
-| `start-preview.ps1` | 🐢 2-3 min | ✅      | ❌          | First setup or testing |
+| Script | Speed | Auto-rebuild? | Use When |
+|--------|-------|---------------|----------|
+| `start.ps1` | ⚡ Instant | ❌ | Restarting servers |
+| `start-watch.ps1` | 🐢 2-3 min | ✅ | Active development |
+| `start-preview.ps1` | 🐢 2-3 min | ❌ | First setup |
 
 ---
 
-## Option 4: Manual Setup
+## Manual Setup
 
 ### Step 1: Install Dependencies
 
@@ -92,69 +86,44 @@ npm run build
 
 ### Step 3: Start Servers
 
-#### Option A: With Watch Mode (Recommended)
+**With Watch Mode (Recommended):**
 
-Open **4 separate terminals** and run:
-
-**Terminal 1 - Shell Remote (watch + preview combined):**
+Open **4 separate terminals**:
 
 ```bash
+# Terminal 1
 cd remotes/shell
 npm run dev:watch
-# Runs build:watch + preview in one command
-```
 
-**Terminal 2 - Products Remote (watch + preview combined):**
-
-```bash
+# Terminal 2
 cd remotes/products
 npm run dev:watch
-# Runs build:watch + preview in one command
-```
 
-**Terminal 3 - Contact Remote (watch + preview combined):**
-
-```bash
+# Terminal 3
 cd remotes/contact
 npm run dev:watch
-# Runs build:watch + preview in one command
-```
 
-**Terminal 4 - Host:**
-
-```bash
+# Terminal 4
 cd host
 npm run dev
 ```
 
-#### Option B: Without Watch Mode
-
-Open **4 separate terminals** and run:
-
-**Terminal 1 - Shell Remote:**
+**Without Watch Mode:**
 
 ```bash
+# Terminal 1
 cd remotes/shell
 npm run preview
-```
 
-**Terminal 2 - Products Remote:**
-
-```bash
+# Terminal 2
 cd remotes/products
 npm run preview
-```
 
-**Terminal 3 - Contact Remote:**
-
-```bash
+# Terminal 3
 cd remotes/contact
 npm run preview
-```
 
-**Terminal 4 - Host:**
-
-```bash
+# Terminal 4
 cd host
 npm run dev
 ```
@@ -165,38 +134,9 @@ Navigate to: **http://localhost:5000**
 
 ---
 
-## 📋 Important Notes
+## 📋 Verify Setup
 
-### ⚠️ Remotes Must Run in Preview Mode
-
-**Why?**
-
-- Vite's dev server doesn't generate `remoteEntry.js` in dev mode
-- Module Federation requires this file
-- Preview mode serves the built `dist` folder which includes it
-
-**What this means:**
-
-- Remotes: `npm run preview` ✅ (serves built files)
-- Host: `npm run dev` ✅ (can use dev mode)
-
-### 🔄 Making Changes
-
-**With Watch Mode (start-watch.ps1):**
-
-- **Host files:** Edit → Auto reload ✅
-- **Remote files:** Edit → Auto rebuild → Refresh browser 🔄
-
-**Without Watch Mode (start-preview.ps1):**
-
-- **Host files:** Edit → Auto reload ✅
-- **Remote files:** Edit → Run `npm run build` → Refresh browser 🔧
-
----
-
-## 🎯 Verify Setup
-
-All servers should be running on these ports:
+All servers should be running:
 
 | Application     | Port | URL                   | Mode    |
 | --------------- | ---- | --------------------- | ------- |
@@ -213,6 +153,35 @@ VITE v5.x.x ready at http://localhost:XXXX
 
 ---
 
+## ⚠️ Important Notes
+
+### Remotes Must Run in Preview Mode
+
+**Why?**
+
+- Vite's dev server doesn't generate `remoteEntry.js` in dev mode
+- Module Federation requires this file
+- Preview mode serves the built `dist` folder
+
+**What this means:**
+
+- Remotes: `npm run preview` ✅ (serves built files)
+- Host: `npm run dev` ✅ (can use dev mode)
+
+### Making Changes
+
+**With Watch Mode:**
+
+- **Host files:** Edit → Auto reload ✅
+- **Remote files:** Edit → Auto rebuild → Refresh browser 🔄
+
+**Without Watch Mode:**
+
+- **Host files:** Edit → Auto reload ✅
+- **Remote files:** Edit → Run `npm run build` → Refresh browser 🔧
+
+---
+
 ## 🐛 Troubleshooting
 
 ### Error: "Failed to fetch remoteEntry.js"
@@ -222,8 +191,6 @@ VITE v5.x.x ready at http://localhost:XXXX
 **Fix:**
 
 ```bash
-# Stop the remote
-# Then rebuild and preview:
 cd remotes/shell
 npm run build
 npm run preview
@@ -262,27 +229,25 @@ npm run build
 ## 🎨 What You'll See
 
 ### Home Page
-
-- Hero section
+- Hero section with call-to-action
 - Feature cards
 - Navigation menu
 - Theme toggle (light/dark)
 
 ### Products Page (Remote Module)
-
-- Product grid
-- Search & filters
-- Add to cart
-- Cart counter updates
+- Product grid with images
+- Search functionality
+- Category filters
+- Add to cart buttons
+- Product ratings
 
 ### Contact Page (Remote Module)
-
-- Contact form
-- Company info
-- Form validation
+- Contact form with validation
+- Company contact info
+- Map placeholder
+- Success notifications
 
 ### Header & Footer (Remote Module)
-
 - Navigation links
 - Theme switcher
 - Shopping cart count
@@ -290,31 +255,24 @@ npm run build
 
 ---
 
-## 🔧 Stopping Servers
+## 🚀 Next Steps
 
-**Automated script:** Close the PowerShell windows or press Ctrl+C in each
-
-**Manual:** Press Ctrl+C in each terminal
-
----
-
-## 📚 Next Steps
-
-1. ✅ **Get it running** (you're here!)
-2. 🔍 **Explore the code:**
+1. ✅ Get it running (you're here!)
+2. 🔍 Explore the code:
    - `host/src/App.tsx` - See how remotes are imported
    - `remotes/products/src/ProductsPage.tsx` - Remote component
    - `host/vite.config.ts` - Federation configuration
-3. 🎨 **Make changes:**
+3. 🎨 Make changes:
    - Edit theme colors in `host/src/theme/theme.ts`
    - Add products in `ProductsPage.tsx`
-4. 📖 **Read [README.md](README.md)** for full documentation
+4. 📖 Read [README.md](README.md) for full documentation
+5. 🎨 Try [Web Components](WEB_COMPONENTS.md)
 
 ---
 
 ## 🆘 Still Having Issues?
 
-Check that:
+**Checklist:**
 
 - [ ] All 4 servers are running
 - [ ] Remotes are in **preview** mode (not dev)
@@ -329,11 +287,11 @@ Check that:
 taskkill /F /IM node.exe
 
 # Restart with the script
-.\start-preview.ps1
+.\start-watch.ps1
 ```
 
 ---
 
 **Happy Coding! 🚀**
 
-Need more details? See [README.md](README.md)
+Need more details? See [README.md](README.md) or [ARCHITECTURE.md](ARCHITECTURE.md)

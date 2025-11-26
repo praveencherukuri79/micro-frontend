@@ -2,32 +2,25 @@
 
 ## Dual-Mode Micro-Frontend Architecture
 
-This project demonstrates a **dual-mode architecture** where each remote module can function as:
-1. **Module Federation Remote** - For React micro-frontend apps
-2. **Web Component** - For integration into any application
+Each remote module functions in **two modes** from a single codebase:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                      REMOTE COMPONENT                            │
-│  (Single React codebase: ProductsPage.tsx, ContactPage.tsx)    │
-└──────────────────┬──────────────────────────────┬───────────────┘
-                   │                              │
-        ┌──────────▼──────────┐        ┌─────────▼──────────┐
-        │  MODULE FEDERATION  │        │   WEB COMPONENT    │
-        │      WRAPPER        │        │     WRAPPER        │
-        └──────────┬──────────┘        └─────────┬──────────┘
-                   │                              │
-        ┌──────────▼──────────┐        ┌─────────▼──────────┐
-        │   remoteEntry.js    │        │  {name}-widget.js  │
-        │   (Federation)      │        │  (Custom Element)  │
-        └──────────┬──────────┘        └─────────┬──────────┘
-                   │                              │
-    ┌──────────────▼──────────────┐    ┌─────────▼──────────────┐
-    │  Used in React/Vite apps    │    │  Used ANYWHERE         │
-    │  via Module Federation      │    │  HTML, Vue, Angular    │
-    │  import('remote/Component') │    │  WordPress, etc.       │
-    └─────────────────────────────┘    │  <products-widget>     │
-                                       └────────────────────────┘
+┌──────────────────────────────────────────┐
+│     REMOTE COMPONENT (React + TS)        │
+│   ProductsPage.tsx / ContactPage.tsx     │
+└─────────────┬────────────────────────────┘
+              │
+        ┌─────┴─────┐
+        │           │
+   ┌────▼───┐  ┌───▼────┐
+   │ Module │  │  Web   │
+   │  Fed   │  │Component│
+   └────┬───┘  └───┬────┘
+        │          │
+    ┌───▼──┐   ┌──▼────┐
+    │React │   │  Any  │
+    │ Apps │   │  App  │
+    └──────┘   └───────┘
 ```
 
 ## Project Structure
@@ -35,203 +28,207 @@ This project demonstrates a **dual-mode architecture** where each remote module 
 ```
 module-federation/
 │
-├── host/                           # Main React application
+├── host/                      # Main React application
 │   ├── src/
-│   │   ├── App.tsx                # Loads remotes via Module Federation
-│   │   ├── store/                 # Shared Zustand stores
-│   │   └── theme/                 # MUI theme
-│   └── vite.config.ts             # Federation consumer config
+│   │   ├── App.tsx           # Loads remote modules
+│   │   ├── components/       # ErrorBoundary
+│   │   ├── pages/            # Local pages
+│   │   ├── store/            # Zustand stores
+│   │   └── theme/            # MUI theme
+│   └── vite.config.ts        # Federation consumer config
 │
 ├── remotes/
-│   ├── shell/                     # Header/Footer remote
+│   ├── shell/                # Header/Footer (Port 5003)
 │   │   ├── src/
 │   │   │   ├── components/
-│   │   │   │   ├── Header.tsx    # ← Actual component
-│   │   │   │   └── Footer.tsx    # ← Actual component
-│   │   │   ├── main.tsx          # ← Federation entry
-│   │   │   └── webcomponent.tsx  # ← Web Component wrapper
-│   │   ├── vite.config.ts        # Federation config
-│   │   ├── vite.config.webcomponent.ts  # Web Component build
-│   │   ├── dist/                 # Module Federation build
-│   │   └── dist-webcomponent/    # Web Component build
+│   │   │   │   ├── Header.tsx
+│   │   │   │   └── Footer.tsx
+│   │   │   ├── main.tsx               # Standalone entry
+│   │   │   └── webcomponent.tsx       # Web Component wrapper
+│   │   ├── vite.config.ts             # Federation config
+│   │   └── vite.config.webcomponent.ts # Web Component build
 │   │
-│   ├── products/                  # Products remote
-│   │   ├── src/
-│   │   │   ├── ProductsPage.tsx  # ← Actual component
-│   │   │   ├── main.tsx          # ← Federation entry
-│   │   │   └── webcomponent.tsx  # ← Web Component wrapper
-│   │   ├── vite.config.ts
-│   │   ├── vite.config.webcomponent.ts
-│   │   ├── dist/
-│   │   └── dist-webcomponent/
+│   ├── products/             # Products page (Port 5001)
+│   │   └── [same structure as shell]
 │   │
-│   └── contact/                   # Contact remote
-│       ├── src/
-│       │   ├── ContactPage.tsx   # ← Actual component
-│       │   ├── main.tsx          # ← Federation entry
-│       │   └── webcomponent.tsx  # ← Web Component wrapper
-│       ├── vite.config.ts
-│       ├── vite.config.webcomponent.ts
-│       ├── dist/
-│       └── dist-webcomponent/
+│   └── contact/              # Contact page (Port 5002)
+│       └── [same structure as shell]
 │
-├── examples/
-│   ├── webcomponent-example.html  # Full demo
-│   └── simple-integration.html    # Minimal example
-│
-├── start.ps1                      # Quick start script
-├── start-watch.ps1                # Development with auto-rebuild
-├── start-preview.ps1              # Build then start
-├── build-webcomponents.ps1        # Build all web components
-│
-├── README.md                      # Main documentation
-├── QUICKSTART.md                  # Setup guide
-├── WEB_COMPONENTS.md              # Web Component guide
-└── ARCHITECTURE.md                # This file
+├── examples/                 # Web Component examples
+├── *.ps1                     # Development scripts
+└── *.md                      # Documentation
 ```
 
-## Build Outputs
+## Build Modes
 
 Each remote produces **two separate builds**:
 
-### 1. Module Federation Build (`dist/`)
+### 1. Module Federation Build
 
 ```bash
 npm run build
 ```
 
 **Output:** `dist/assets/remoteEntry.js`  
-**Used by:** Host React app via Module Federation  
-**How:** `import('productsApp/ProductsPage')`
+**Usage:** `import('productsApp/ProductsPage')`  
+**For:** React apps with Module Federation
 
-### 2. Web Component Build (`dist-webcomponent/`)
+### 2. Web Component Build
 
 ```bash
 npm run build:webcomponent
 ```
 
-**Output:** 
-- `dist-webcomponent/{name}-widget.js` (ES module)
-- `dist-webcomponent/{name}-widget.umd.js` (UMD)
-
-**Used by:** Any HTML page, any framework  
-**How:** `<products-widget theme="light"></products-widget>`
+**Output:** `dist-webcomponent/{name}-widget.js`  
+**Usage:** `<products-widget theme="light"></products-widget>`  
+**For:** ANY application (Vue, Angular, WordPress, etc.)
 
 ## Data Flow
 
 ### Module Federation Mode
 
 ```
-Browser Request
-      │
-      ▼
 ┌─────────────┐
-│   Host App  │  (localhost:5000)
-│  (Port 5000)│
+│  Host App   │ Loads remotes at runtime
 └──────┬──────┘
        │
-       │ Loads remote at runtime
-       │
        ▼
 ┌──────────────────┐
-│ Remote Federation│  http://localhost:5001/assets/remoteEntry.js
-│ Entry Point      │
+│ remoteEntry.js   │ Federated module
 └──────┬───────────┘
        │
-       │ Returns React Component
-       │
        ▼
 ┌──────────────────┐
-│  ProductsPage    │  Rendered in Host's React tree
-│  Component       │  with shared dependencies
+│ React Component  │ Rendered in host's tree
 └──────────────────┘
 ```
 
 ### Web Component Mode
 
 ```
-Browser Request
-      │
-      ▼
 ┌─────────────────┐
-│   HTML Page     │  (Any application)
-│   <products-    │
-│    widget>      │
+│   HTML Page     │ Any application
 └──────┬──────────┘
        │
-       │ Loads script
-       │
        ▼
 ┌──────────────────┐
-│ products-widget. │  Standalone bundle (no host needed)
-│ js               │
+│ widget.js        │ Standalone bundle
 └──────┬───────────┘
        │
-       │ Registers custom element
-       │
        ▼
 ┌──────────────────┐
-│ ProductsPage     │  Rendered in Shadow DOM
-│ Component        │  Self-contained with styles
+│ Custom Element   │ Self-contained
 └──────────────────┘
 ```
 
 ## Development Workflow
 
-### Module Federation Development
+### Quick Start
 
-```bash
-# Terminal 1: Shell remote (watch + preview)
-cd remotes/shell
-npm run dev:watch
-
-# Terminal 2: Products remote (watch + preview)
-cd remotes/products
-npm run dev:watch
-
-# Terminal 3: Contact remote (watch + preview)
-cd remotes/contact
-npm run dev:watch
-
-# Terminal 4: Host (dev mode)
-cd host
-npm run dev
-```
-
-**Or use the script:**
 ```powershell
+# Instant start (if already built)
+.\start.ps1
+
+# With auto-rebuild (recommended)
 .\start-watch.ps1
+
+# Build then start
+.\start-preview.ps1
 ```
 
-**Result:**
-- Edit any file → Auto rebuilds → Refresh browser
-- Host changes → Auto reload (no refresh needed)
+### Making Changes
 
-### Web Component Development
+**Module Federation:**
+- Edit files → Auto rebuild → Refresh browser
 
-```bash
-# 1. Build web components
-.\build-webcomponents.ps1
+**Web Components:**
+1. Edit files
+2. Run `npm run build:webcomponent`
+3. Refresh browser
 
-# 2. Open example HTML file
-# examples/webcomponent-example.html
+## Key Technologies
 
-# 3. Make changes to components
-# 4. Rebuild: npm run build:webcomponent
-# 5. Refresh browser
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| React | 18.3 | UI Library |
+| TypeScript | 5.9 | Type Safety |
+| Vite | 5.4 | Build Tool |
+| Material-UI | 5.18 | UI Components |
+| Zustand | 4.5 | State Management |
+| React Router | 6.30 | Routing |
+| Module Federation | 1.4 | Micro-frontends |
+| Web Components | Native | Universal integration |
+
+## Why This Architecture?
+
+### Module Federation Benefits
+- ✅ Runtime integration (no build-time coupling)
+- ✅ Independent deployment
+- ✅ Shared dependencies
+- ✅ Team autonomy
+
+### Web Components Benefits
+- ✅ Framework agnostic
+- ✅ Standard-based
+- ✅ Encapsulation
+- ✅ Wide adoption
+
+### Both Together
+- ✅ Maximum flexibility
+- ✅ Single source of truth
+- ✅ Choose the right tool for each use case
+
+## Best Practices
+
+### Component Design
+
+**✅ DO:**
+- Keep components self-contained
+- Accept configuration via props/attributes
+- Emit events for parent communication
+- Support theming
+- Handle loading and error states
+
+**❌ DON'T:**
+- Depend on parent context
+- Use global state outside component
+- Make routing assumptions
+- Hardcode non-themeable styles
+
+### State Management
+
+| Mode | Approach |
+|------|----------|
+| **Module Federation** | Share Zustand stores across remotes |
+| **Web Component** | Self-contained state, communicate via events |
+
+## Performance
+
+### Module Federation
+- Shared dependencies → React/MUI loaded once
+- Code splitting → Lazy load remotes
+- Browser caching → Remotes cached
+
+### Web Components
+- Self-contained → Includes all dependencies
+- Trade-off → Larger but independent
+- Optimized → Tree-shaking, minification
+
+**Recommendation:** Use Module Federation for same-ecosystem apps, Web Components for cross-framework integration.
+
+## Deployment
+
+### Module Federation
+
+Deploy to CDN:
+```
+Host:     https://app.example.com
+Shell:    https://cdn.example.com/shell/
+Products: https://cdn.example.com/products/
+Contact:  https://cdn.example.com/contact/
 ```
 
-## Deployment Strategies
-
-### Strategy 1: Module Federation Only
-
-**Deploy:**
-- Host to `https://app.example.com`
-- Shell to `https://cdn.example.com/shell/`
-- Products to `https://cdn.example.com/products/`
-- Contact to `https://cdn.example.com/contact/`
-
-**Host config:**
+Update host config:
 ```typescript
 remotes: {
   shellApp: 'https://cdn.example.com/shell/assets/remoteEntry.js',
@@ -240,137 +237,47 @@ remotes: {
 }
 ```
 
-### Strategy 2: Web Components Only
+### Web Components
 
-**Deploy:**
-- `products-widget.js` to `https://widgets.example.com/products-widget.js`
-- `contact-widget.js` to `https://widgets.example.com/contact-widget.js`
-- `shell-widget.js` to `https://widgets.example.com/shell-widget.js`
+Deploy widgets:
+```
+https://widgets.example.com/products-widget.js
+https://widgets.example.com/contact-widget.js
+https://widgets.example.com/shell-widget.js
+```
 
-**Usage:**
+Use anywhere:
 ```html
-<!-- In ANY application -->
 <products-widget theme="light"></products-widget>
 <script type="module" src="https://widgets.example.com/products-widget.js"></script>
 ```
 
-### Strategy 3: Hybrid (Both!)
-
-**Deploy both builds:**
-- Module Federation for main React apps
-- Web Components for integrations (marketing sites, WordPress, etc.)
-
-**Benefits:**
-- Same codebase, multiple distribution methods
-- Maximum flexibility
-- Future-proof
-
-## Technology Decisions
-
-### Why Module Federation?
-- **Runtime integration** - No build-time dependencies
-- **Independent deployment** - Update remotes without rebuilding host
-- **Shared dependencies** - Efficient bundle sizes
-- **Team autonomy** - Different teams own different remotes
-
-### Why Web Components?
-- **Framework agnostic** - Works anywhere
-- **Standard-based** - Native browser support
-- **Encapsulation** - Styles don't leak
-- **Wide adoption** - Supported everywhere
-
-### Why Vite?
-- **Fast** - Lightning-fast dev server and builds
-- **Modern** - Native ESM support
-- **Plugin ecosystem** - Great tooling
-- **DX** - Hot Module Replacement (HMR)
-
-### Why Both?
-- **Flexibility** - Choose the right tool for the job
-- **Progressive migration** - Start with one, add the other later
-- **Maximum reach** - Module Federation for React apps, Web Components for everything else
-- **Single source of truth** - One component, two wrappers
-
-## Best Practices
-
-### Component Design
-
-✅ **DO:**
-- Keep components self-contained
-- Accept configuration via props/attributes
-- Emit events for parent communication
-- Handle loading and error states
-- Support theming
-
-❌ **DON'T:**
-- Depend on parent context (except MUI theme)
-- Use global state outside component
-- Make assumptions about routing
-- Hardcode styles that can't be themed
-
-### State Management
-
-**Module Federation:**
-- Can share Zustand stores across remotes
-- Host provides global state
-- Remotes can access via import
-
-**Web Components:**
-- Self-contained state (useState, etc.)
-- Communicate via attributes and events
-- No shared state assumption
-
-### Styling
-
-**Both modes use MUI:**
-- ThemeProvider wraps components
-- Accepts `theme` prop/attribute
-- Consistent UI across modes
-
-## Performance Considerations
-
-### Module Federation
-- **Shared dependencies** - React, MUI loaded once
-- **Code splitting** - Lazy load remotes
-- **Caching** - Remotes cached by browser
-
-### Web Components
-- **Bundle size** - Includes all dependencies
-- **Trade-off** - Larger but self-contained
-- **Optimization** - Tree-shaking, minification
-
-### Recommendations
-- Use Module Federation for apps in same ecosystem
-- Use Web Components for cross-framework integration
-- Consider bundle size vs flexibility trade-off
-
 ## Security
 
 ### Module Federation
-- **CORS** - Configure properly
-- **CSP** - Allow script-src from remote domains
-- **Trust** - Only load from trusted remotes
+- Configure CORS properly
+- Set appropriate CSP headers
+- Only load from trusted remotes
+- Verify remote integrity
 
 ### Web Components
-- **XSS** - Validate all inputs
-- **Shadow DOM** - Provides style encapsulation
-- **Events** - Sanitize event data
+- Validate all inputs
+- Sanitize event data
+- Use Shadow DOM for style encapsulation
+- Prevent XSS vulnerabilities
 
 ## Future Enhancements
 
-Possible additions:
 - [ ] Server-Side Rendering (SSR)
 - [ ] Versioning strategy
 - [ ] A/B testing support
 - [ ] Analytics integration
 - [ ] Error tracking
 - [ ] Performance monitoring
-- [ ] Automated testing
+- [ ] Automated testing suite
 - [ ] CI/CD pipeline
 - [ ] Storybook integration
-- [ ] TypeScript strict mode
 
 ---
 
-**This architecture provides maximum flexibility while maintaining a single source of truth for components.** 🎉
-
+**Clean architecture with dual-mode deployment from a single codebase.** 🎉
