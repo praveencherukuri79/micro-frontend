@@ -1,7 +1,8 @@
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { CssBaseline, ThemeProvider } from '@mui/material';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import ProductsPage from './ProductsPage';
+import { createWebComponentTheme } from './utils/theme';
 import {
   ThemeMode,
   getThemeMode,
@@ -42,7 +43,7 @@ class ProductsWebComponent extends HTMLElement {
     const mountPoint = document.createElement('div');
     this.appendChild(mountPoint);
 
-    const theme = createTheme({ palette: { mode: this.themeMode } });
+    const theme = createWebComponentTheme(this.themeMode);
 
     this.root = ReactDOM.createRoot(mountPoint);
     this.root.render(

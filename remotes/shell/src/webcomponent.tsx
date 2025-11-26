@@ -1,4 +1,4 @@
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { CssBaseline, ThemeProvider } from '@mui/material';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Footer } from './components/Footer';
@@ -10,6 +10,7 @@ import {
   safeParseInt,
   unmountReactRoot,
 } from './utils/webComponent';
+import { createWebComponentTheme } from './utils/theme';
 
 class ShellWebComponent extends HTMLElement {
   private root: ReactDOM.Root | null = null;
@@ -57,7 +58,7 @@ class ShellWebComponent extends HTMLElement {
     const mountPoint = document.createElement('div');
     this.appendChild(mountPoint);
 
-    const theme = createTheme({ palette: { mode: this.themeMode } });
+    const theme = createWebComponentTheme(this.themeMode);
 
     const handleThemeToggle = () => {
       this.dispatchEvent(

@@ -1,4 +1,4 @@
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { CssBaseline, ThemeProvider } from '@mui/material';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import ContactPage from './ContactPage';
@@ -8,6 +8,7 @@ import {
   registerWebComponent,
   unmountReactRoot,
 } from './utils/webComponent';
+import { createWebComponentTheme } from './utils/theme';
 
 class ContactWebComponent extends HTMLElement {
   private root: ReactDOM.Root | null = null;
@@ -42,7 +43,7 @@ class ContactWebComponent extends HTMLElement {
     const mountPoint = document.createElement('div');
     this.appendChild(mountPoint);
 
-    const theme = createTheme({ palette: { mode: this.themeMode } });
+    const theme = createWebComponentTheme(this.themeMode);
 
     this.root = ReactDOM.createRoot(mountPoint);
     this.root.render(
