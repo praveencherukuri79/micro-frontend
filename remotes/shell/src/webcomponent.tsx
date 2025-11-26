@@ -1,17 +1,36 @@
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import React from 'react';
+import ReactDOM from 'react-dom/client';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
-import { WebComponentBase, registerWebComponent, getThemeMode } from './utils/webComponent';
+import {
+  ThemeMode,
+  getThemeMode,
+  registerWebComponent,
+  safeParseInt,
+  unmountReactRoot,
+} from './utils/webComponent';
 
-class ShellWebComponent extends WebComponentBase {
+class ShellWebComponent extends HTMLElement {
+  private root: ReactDOM.Root | null = null;
+  private themeMode: ThemeMode = 'light';
   private cartCount: number = 0;
   private component: 'header' | 'footer' = 'header';
 
-  static get observedAttributes(): string[] {
+  static get observedAttributes() {
     return ['theme', 'cart-count', 'component'];
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+  connectedCallback() {
+    this.mount();
+  }
+
+  disconnectedCallback() {
+    unmountReactRoot(this.root);
+    this.root = null;
+  }
+
+  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (oldValue === newValue) return;
 
     switch (name) {
@@ -19,21 +38,27 @@ class ShellWebComponent extends WebComponentBase {
         this.themeMode = getThemeMode(newValue);
         break;
       case 'cart-count':
-        this.cartCount = parseInt(newValue, 10) || 0;
+        this.cartCount = safeParseInt(newValue);
         break;
       case 'component':
         this.component = (newValue as 'header' | 'footer') || 'header';
         break;
     }
 
-    try {
-      this.mount();
-    } catch (error) {
-      console.error('Error updating shell component:', error);
-    }
+    this.mount();
   }
 
-  protected renderComponent(): React.ReactElement {
+  private mount() {
+    if (this.root) {
+      this.root.unmount();
+    }
+
+    this.innerHTML = '';
+    const mountPoint = document.createElement('div');
+    this.appendChild(mountPoint);
+
+    const theme = createTheme({ palette: { mode: this.themeMode } });
+
     const handleThemeToggle = () => {
       this.dispatchEvent(
         new CustomEvent('theme-toggle', {
@@ -53,15 +78,23 @@ class ShellWebComponent extends WebComponentBase {
       );
     };
 
-    return this.component === 'header' ? (
-      <Header
-        themeMode={this.themeMode}
-        cartCount={this.cartCount}
-        onToggleTheme={handleThemeToggle}
-        onNavigate={handleNavigate}
-      />
-    ) : (
-      <Footer />
+    this.root = ReactDOM.createRoot(mountPoint);
+    this.root.render(
+      <React.StrictMode>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          {this.component === 'header' ? (
+            <Header
+              themeMode={this.themeMode}
+              cartCount={this.cartCount}
+              onToggleTheme={handleThemeToggle}
+              onNavigate={handleNavigate}
+            />
+          ) : (
+            <Footer />
+          )}
+        </ThemeProvider>
+      </React.StrictMode>
     );
   }
 }

@@ -1,96 +1,54 @@
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 
-type ThemeMode = 'light' | 'dark';
+export type ThemeMode = 'light' | 'dark';
 
+/**
+ * Validate theme mode
+ */
 export const isValidThemeMode = (mode: string): mode is ThemeMode => {
   return mode === 'light' || mode === 'dark';
 };
 
+/**
+ * Get theme mode with fallback
+ */
 export const getThemeMode = (mode: string | null | undefined): ThemeMode => {
   return mode && isValidThemeMode(mode) ? mode : 'light';
 };
 
-export abstract class WebComponentBase extends HTMLElement {
-  protected root: ReactDOM.Root | null = null;
-  protected themeMode: ThemeMode = 'light';
+/**
+ * Safe parseInt with fallback
+ */
+export const safeParseInt = (value: string, fallback = 0): number => {
+  const parsed = parseInt(value, 10);
+  return isNaN(parsed) ? fallback : parsed;
+};
 
-  static get observedAttributes(): string[] {
-    return ['theme'];
-  }
-
-  connectedCallback(): void {
+/**
+ * Unmount React root safely
+ */
+export const unmountReactRoot = (root: ReactDOM.Root | null): void => {
+  if (root) {
     try {
-      this.mount();
+      root.unmount();
     } catch (error) {
-      console.error('Error mounting web component:', error);
-      this.showError();
+      console.error('Error unmounting React root:', error);
     }
   }
+};
 
-  disconnectedCallback(): void {
-    this.unmount();
-  }
-
-  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
-    if (name === 'theme' && oldValue !== newValue) {
-      this.themeMode = getThemeMode(newValue);
-      try {
-        this.mount();
-      } catch (error) {
-        console.error('Error updating web component:', error);
-      }
-    }
-  }
-
-  protected mount(): void {
-    if (this.root) {
-      this.root.unmount();
-    }
-
-    this.innerHTML = '';
-    const mountPoint = document.createElement('div');
-    this.appendChild(mountPoint);
-
-    const theme = createTheme({ palette: { mode: this.themeMode } });
-
-    this.root = ReactDOM.createRoot(mountPoint);
-    this.root.render(
-      <React.StrictMode>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          {this.renderComponent()}
-        </ThemeProvider>
-      </React.StrictMode>
-    );
-  }
-
-  protected unmount(): void {
-    if (this.root) {
-      this.root.unmount();
-      this.root = null;
-    }
-  }
-
-  protected showError(): void {
-    this.innerHTML = `
-      <div style="padding: 20px; border: 1px solid #f44336; border-radius: 4px; background: #ffebee; color: #c62828;">
-        <strong>Error Loading Component</strong>
-        <p>Failed to load component. Please refresh the page.</p>
-      </div>
-    `;
-  }
-
-  protected abstract renderComponent(): React.ReactElement;
-}
-
+/**
+ * Register custom element safely
+ */
 export const registerWebComponent = (
   tagName: string,
   elementClass: CustomElementConstructor
 ): void => {
   if (!customElements.get(tagName)) {
-    customElements.define(tagName, elementClass);
+    try {
+      customElements.define(tagName, elementClass);
+    } catch (error) {
+      console.error(`Error registering web component ${tagName}:`, error);
+    }
   }
 };
-
