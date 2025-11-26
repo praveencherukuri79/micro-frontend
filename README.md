@@ -22,13 +22,16 @@ A complete setup where each remote component works in **TWO ways** from a single
 ### Module Federation Mode
 
 ```powershell
+# First time: Install dependencies (parallel, fast!)
+.\install-all.ps1
+
 # Instant start (if already built)
 .\start.ps1
 
 # With auto-rebuild (recommended for development)
 .\start-watch.ps1
 
-# Build first, then start
+# Build first, then start (parallel builds!)
 .\start-preview.ps1
 ```
 
@@ -126,8 +129,11 @@ federation({
 
 ### Install Dependencies
 
-```bash
-# Install in each app
+```powershell
+# Fast parallel install (recommended)
+.\install-all.ps1
+
+# Or manually in each app
 cd host && npm install
 cd ../remotes/shell && npm install
 cd ../products && npm install

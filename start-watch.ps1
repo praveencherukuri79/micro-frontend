@@ -1,32 +1,65 @@
 # PowerShell script to start Module Federation with WATCH mode
-# This script auto-rebuilds remotes when you edit files!
+# Builds all remotes in PARALLEL, then starts with auto-rebuild
 
 Write-Host "Starting Module Federation (Watch Mode)..." -ForegroundColor Cyan
 Write-Host ""
 
-Write-Host "Building all remotes (initial build)..." -ForegroundColor Yellow
+Write-Host "Building all remotes in PARALLEL (initial build)..." -ForegroundColor Yellow
 Write-Host ""
 
-# Build Shell Remote
+$startTime = Get-Date
+
+# Start all builds in parallel using jobs
+$jobs = @()
+
+$jobs += Start-Job -ScriptBlock {
+    Set-Location $using:PWD/remotes/shell
+    npm run build
+} -Name "Build-Shell"
 Write-Host "Building Shell Remote..." -ForegroundColor Green
-Set-Location remotes/shell
-npm run build
-Set-Location ../..
 
-# Build Products Remote  
+$jobs += Start-Job -ScriptBlock {
+    Set-Location $using:PWD/remotes/products
+    npm run build
+} -Name "Build-Products"
 Write-Host "Building Products Remote..." -ForegroundColor Green
-Set-Location remotes/products
-npm run build
-Set-Location ../..
 
-# Build Contact Remote
+$jobs += Start-Job -ScriptBlock {
+    Set-Location $using:PWD/remotes/contact
+    npm run build
+} -Name "Build-Contact"
 Write-Host "Building Contact Remote..." -ForegroundColor Green
-Set-Location remotes/contact
-npm run build
-Set-Location ../..
 
 Write-Host ""
-Write-Host "Initial builds complete!" -ForegroundColor Green
+Write-Host "Waiting for builds to complete..." -ForegroundColor Cyan
+
+# Wait for all jobs to complete
+$jobs | Wait-Job | Out-Null
+
+# Check for failures
+$failed = $false
+foreach ($job in $jobs) {
+    if ($job.State -eq "Failed") {
+        Write-Host "Build failed: $($job.Name)" -ForegroundColor Red
+        Receive-Job -Job $job
+        $failed = $true
+    }
+}
+
+# Clean up jobs
+$jobs | Remove-Job
+
+$endTime = Get-Date
+$duration = ($endTime - $startTime).TotalSeconds
+
+if ($failed) {
+    Write-Host ""
+    Write-Host "Build failed! Check errors above." -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
+Write-Host "Initial builds complete in $([math]::Round($duration, 1)) seconds!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Starting servers in WATCH mode..." -ForegroundColor Cyan
 Write-Host ""

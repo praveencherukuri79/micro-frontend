@@ -26,7 +26,7 @@ For active development:
 ```
 
 **Features:**
-- ✅ Builds all remotes initially
+- ✅ Builds all remotes in PARALLEL (3x faster!)
 - ✅ Auto-rebuilds on file changes
 - ✅ Opens 4 PowerShell windows
 - ✅ Edit → Auto rebuild → Refresh browser
@@ -39,21 +39,35 @@ For first-time setup or testing:
 .\start-preview.ps1
 ```
 
-**Difference:** No auto-rebuild. Manual rebuild needed after changes.
+**Features:**
+- ✅ Builds all remotes in PARALLEL (3x faster!)
+- ✅ Auto-installs missing dependencies
+- ❌ No auto-rebuild (manual rebuild needed after changes)
 
 ## 📋 Script Comparison
 
-| Script | Speed | Auto-rebuild? | Use When |
-|--------|-------|---------------|----------|
-| `start.ps1` | ⚡ Instant | ❌ | Restarting servers |
-| `start-watch.ps1` | 🐢 2-3 min | ✅ | Active development |
-| `start-preview.ps1` | 🐢 2-3 min | ❌ | First setup |
+| Script | Speed | Parallel Build? | Auto-rebuild? | Use When |
+|--------|-------|----------------|---------------|----------|
+| `install-all.ps1` | ⚡ Fast | ✅ | N/A | First time setup |
+| `start.ps1` | ⚡ Instant | N/A | ❌ | Restarting servers |
+| `start-watch.ps1` | 🚀 ~1 min | ✅ | ✅ | Active development |
+| `start-preview.ps1` | 🚀 ~1 min | ✅ | ❌ | Testing/First run |
 
 ---
 
 ## Manual Setup
 
 ### Step 1: Install Dependencies
+
+**Option A: Parallel Install (Fast - Recommended)**
+
+```powershell
+.\install-all.ps1
+```
+
+Installs all dependencies in parallel (~3x faster than sequential).
+
+**Option B: Manual Install**
 
 ```bash
 # Install in each folder
