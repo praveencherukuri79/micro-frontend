@@ -1,9 +1,10 @@
 import { createTheme, ThemeOptions } from '@mui/material/styles';
+import { ThemeMode, THEME_MODE } from '../utils/constants';
 
-const getDesignTokens = (mode: 'light' | 'dark'): ThemeOptions => ({
+const getDesignTokens = (mode: ThemeMode): ThemeOptions => ({
   palette: {
     mode,
-    ...(mode === 'light'
+    ...(mode === THEME_MODE.LIGHT
       ? {
           primary: {
             main: '#1976d2',
@@ -86,16 +87,17 @@ const getDesignTokens = (mode: 'light' | 'dark'): ThemeOptions => ({
       styleOverrides: {
         root: {
           borderRadius: 12,
-          boxShadow: mode === 'light' 
-            ? '0 2px 8px rgba(0,0,0,0.1)' 
-            : '0 2px 8px rgba(0,0,0,0.3)',
+          boxShadow:
+            mode === THEME_MODE.LIGHT
+              ? '0 2px 8px rgba(0,0,0,0.1)'
+              : '0 2px 8px rgba(0,0,0,0.3)',
         },
       },
     },
   },
 });
 
-export const createAppTheme = (mode: 'light' | 'dark') => {
+export const createAppTheme = (mode: ThemeMode = THEME_MODE.LIGHT) => {
   return createTheme(getDesignTokens(mode));
 };
 
