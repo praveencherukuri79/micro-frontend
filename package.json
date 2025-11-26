@@ -1,0 +1,25 @@
+{
+  "name": "module-federation-store",
+  "version": "1.0.0",
+  "description": "Module Federation demo with React, MUI, and Vite",
+  "private": true,
+  "scripts": {
+    "install:all": "cd host && npm install && cd ../remotes/shell && npm install && cd ../products && npm install && cd ../contact && npm install",
+    "dev:host": "cd host && npm run dev",
+    "dev:shell": "cd remotes/shell && npm run dev",
+    "dev:products": "cd remotes/products && npm run dev",
+    "dev:contact": "cd remotes/contact && npm run dev",
+    "build:all": "cd host && npm run build && cd ../remotes/shell && npm run build && cd ../products && npm run build && cd ../contact && npm run build"
+  },
+  "keywords": [
+    "module-federation",
+    "react",
+    "vite",
+    "mui",
+    "micro-frontends",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+

@@ -1,0 +1,29 @@
+{
+  "folders": [
+    {
+      "name": "Root",
+      "path": "."
+    },
+    {
+      "name": "Host App",
+      "path": "host"
+    },
+    {
+      "name": "Products Remote",
+      "path": "remotes/products"
+    },
+    {
+      "name": "Contact Remote",
+      "path": "remotes/contact"
+    }
+  ],
+  "settings": {
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "editor.formatOnSave": true,
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    }
+  }
+}
+
