@@ -11,12 +11,16 @@ A complete setup where each remote component works in **TWO ways** from a single
 | **Module Federation** | React micro-frontends | `import('remoteApp/Component')` |
 | **Web Component** | ANY framework | `<products-widget>` HTML tag |
 
-**Applications:**
-- **Host** (Port 5000) - Main React app orchestrating all remotes
+**Host Applications:**
+- **Host** (Port 5000) - Module Federation host app
+- **Host-WebComponent** (Port 5100) - Web Components host app
+
+**Remote Applications:**
 - **Shell** (Port 5003) - React - Header & Footer components
 - **Products** (Port 5001) - React - Product catalog showcase
 - **Contact** (Port 5002) - React - Contact form implementation
-- **Angular** (Port 5004) - Angular 17 + Webpack - Data dashboard remote
+- **Angular-Webpack** (Port 5004) - Angular 17 + Webpack - Data dashboard remote
+- **Angular-Vite** (Port 5006) - Angular + Vite (experimental) - Data dashboard remote
 - **Vue** (Port 5005) - Vue 3 - Settings & configuration remote
 
 ## 🚀 Quick Start
@@ -41,12 +45,28 @@ Open **http://localhost:5000**
 
 ### Web Component Mode
 
+**Option 1: Standalone HTML Examples**
+
 ```powershell
 # Build all web components
 .\build-webcomponents.ps1
 ```
 
-Then open `examples/webcomponent-example.html` or integrate into any app:
+Then open `widgets/webcomponent-example.html` or integrate into any app:
+
+**Option 2: Full React Host with Web Components**
+
+```powershell
+# Build all widgets and start the web component host
+.\start-webcomponents.ps1
+```
+
+Open **http://localhost:5100**
+
+This will:
+- Build all remote web components in parallel
+- Copy them to `host-webcomponent/public/widgets/`
+- Start a React host that uses `<shell-widget>`, `<products-widget>`, etc.
 
 ```html
 <!-- React Remote as Web Component -->
@@ -81,7 +101,7 @@ module-federation/
 │       ├── stores/         # Pinia stores
 │       ├── vue-remote.ts      # Module Federation entry
 │       └── webcomponent.ts    # Web Component wrapper
-├── examples/               # Web Component examples
+├── widgets/                # Built Web Components (generated)
 ├── start*.ps1              # Development scripts (with parallel builds!)
 └── *.md                    # Documentation
 ```

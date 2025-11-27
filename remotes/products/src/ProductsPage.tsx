@@ -95,8 +95,8 @@ export default function ProductsPage() {
   });
 
   const handleAddToCart = (productId: number) => {
-    console.log('Added product to cart:', productId);
-    // TODO: Integrate with host's Zustand store via Module Federation
+    // Cart integration via Module Federation can be implemented here
+    void productId;
   };
 
   return (

@@ -301,7 +301,7 @@ Each remote now supports **two deployment modes**:
 
 ## 🎓 Examples
 
-See `examples/` folder for:
+See `widgets/` folder for:
 
 - `webcomponent-example.html` - Full demo with all components
 - `simple-integration.html` - Minimal example
@@ -309,8 +309,8 @@ See `examples/` folder for:
 Run examples:
 
 ```bash
-# Serve the examples folder
-npx serve examples
+# Serve the widgets folder
+npx serve widgets
 # Open http://localhost:3000
 ```
 

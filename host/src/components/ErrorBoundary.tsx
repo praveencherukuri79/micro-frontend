@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Box, Typography, Button, Container } from '@mui/material';
 import { Error as ErrorIcon } from '@mui/icons-material';
+import { logger } from '../utils/logger';
 
 interface Props {
   children: ReactNode;
@@ -33,9 +34,9 @@ export class ErrorBoundary extends Component<Props, State> {
     // Call optional error handler
     this.props.onError?.(error, errorInfo);
     
-    // Log to external service in production
+    // Production error tracking can be integrated here (Sentry, LogRocket, etc.)
     if (import.meta.env.PROD) {
-      // TODO: Send to error tracking service (Sentry, LogRocket, etc.)
+      logger.error('React Error Boundary caught error:', error);
     }
   }
 

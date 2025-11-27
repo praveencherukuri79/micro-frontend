@@ -11924,7 +11924,7 @@ const wk = _r(/* @__PURE__ */ T.jsx("path", {
     try {
       customElements.define(e, t);
     } catch (n) {
-      console.error(`Error registering web component ${e}:`, n);
+      console.error(`Error registering web component '${e}':`, n);
     }
 }, Lk = (e = "light") => hu({
   palette: {

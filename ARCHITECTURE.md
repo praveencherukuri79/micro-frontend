@@ -54,7 +54,7 @@ module-federation/
 │   └── contact/              # Contact page (Port 5002)
 │       └── [same structure as shell]
 │
-├── examples/                 # Web Component examples
+├── widgets/                  # Built Web Component files
 ├── *.ps1                     # Development scripts
 └── *.md                      # Documentation
 ```

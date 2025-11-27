@@ -4,10 +4,6 @@
     "outDir": "./out-tsc/webcomponent",
     "types": []
   },
-  "files": [
-    "src/main.webcomponent.ts",
-    "src/bootstrap.webcomponent.ts",
-    "src/angular-remote.ts"
-  ],
+  "files": ["src/main.webcomponent.ts"],
   "include": ["src/**/*.d.ts"]
 }

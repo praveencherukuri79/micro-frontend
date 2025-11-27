@@ -42,26 +42,29 @@ Set-Location ../..
 Write-Host ""
 Write-Host "Copying web components to examples folder..." -ForegroundColor Yellow
 
-# Create examples directory if it doesn't exist
-if (-not (Test-Path ".\examples")) {
-    New-Item -ItemType Directory -Path ".\examples" | Out-Null
+# Create widgets directory if it doesn't exist
+if (-not (Test-Path ".\widgets")) {
+    New-Item -ItemType Directory -Path ".\widgets" | Out-Null
 }
 
 # Copy built web components
-Copy-Item ".\remotes\shell\dist-webcomponent\webcomponent.js" ".\examples\shell-widget.js" -Force
-Copy-Item ".\remotes\products\dist-webcomponent\webcomponent.js" ".\examples\products-widget.js" -Force
-Copy-Item ".\remotes\contact\dist-webcomponent\webcomponent.js" ".\examples\contact-widget.js" -Force
-Copy-Item ".\remotes\angular-webpack\dist-webcomponent\main.js" ".\examples\angular-webpack-widget.js" -Force
-Copy-Item ".\remotes\angular-vite\dist-webcomponent\angular-vite-widget.iife.js" ".\examples\angular-vite-widget.js" -Force
-Copy-Item ".\remotes\vue\dist-webcomponent\vue-widget.iife.js" ".\examples\vue-widget.js" -Force
+Copy-Item ".\remotes\shell\dist-webcomponent\webcomponent.js" ".\widgets\shell-widget.js" -Force
+Copy-Item ".\remotes\products\dist-webcomponent\webcomponent.js" ".\widgets\products-widget.js" -Force
+Copy-Item ".\remotes\contact\dist-webcomponent\webcomponent.js" ".\widgets\contact-widget.js" -Force
+
+# Angular Webpack (single file bundle)
+Copy-Item ".\remotes\angular-webpack\dist-webcomponent\angular-webpack-widget.js" ".\widgets\angular-webpack-widget.js" -Force
+
+Copy-Item ".\remotes\angular-vite\dist-webcomponent\angular-vite-widget.iife.js" ".\widgets\angular-vite-widget.js" -Force
+Copy-Item ".\remotes\vue\dist-webcomponent\vue-widget.iife.js" ".\widgets\vue-widget.js" -Force
 if (Test-Path ".\remotes\vue\dist-webcomponent\style.css") {
-    Copy-Item ".\remotes\vue\dist-webcomponent\style.css" ".\examples\vue-widget.css" -Force
+    Copy-Item ".\remotes\vue\dist-webcomponent\style.css" ".\widgets\vue-widget.css" -Force
 }
 
 Write-Host ""
 Write-Host "All Web Components built successfully!" -ForegroundColor Green
 Write-Host ""
-Write-Host "Files available in ./examples/ directory:" -ForegroundColor Cyan
+Write-Host "Files available in ./widgets/ directory:" -ForegroundColor Cyan
 Write-Host "  - shell-widget.js" -ForegroundColor White
 Write-Host "  - products-widget.js" -ForegroundColor White
 Write-Host "  - contact-widget.js" -ForegroundColor White
@@ -69,6 +72,6 @@ Write-Host "  - angular-webpack-widget.js (Angular 17 + Webpack)" -ForegroundCol
 Write-Host "  - angular-vite-widget.js (Angular 17 + Vite)" -ForegroundColor White
 Write-Host "  - vue-widget.js (Vue 3)" -ForegroundColor White
 Write-Host ""
-Write-Host "To test, open: examples/webcomponent-example.html" -ForegroundColor Yellow
+Write-Host "To test, open: widgets/webcomponent-example.html" -ForegroundColor Yellow
 Write-Host ""
 

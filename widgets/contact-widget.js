@@ -15494,7 +15494,7 @@ function zb() {
       [s.target.name]: s.target.value
     });
   }, i = (s) => {
-    s.preventDefault(), console.log("Form submitted:", e), r(!0), t({ name: "", email: "", subject: "", message: "" });
+    s.preventDefault(), r(!0), t({ name: "", email: "", subject: "", message: "" });
   }, l = [
     {
       icon: /* @__PURE__ */ b.jsx(Mb, { sx: { fontSize: 40 } }),

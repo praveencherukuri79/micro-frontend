@@ -14,8 +14,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Header 
           themeMode="light" 
           cartCount={5} 
-          onToggleTheme={() => console.log('Toggle theme')}
-          onNavigate={(path) => console.log('Navigate to:', path)}
+          onToggleTheme={() => {}}
+          onNavigate={() => {}}
         />
         <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}>
           <div>

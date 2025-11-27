@@ -31,7 +31,7 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    // Form submission logic can be integrated here
     setOpenSnackbar(true);
     setFormData({ name: '', email: '', subject: '', message: '' });
   };

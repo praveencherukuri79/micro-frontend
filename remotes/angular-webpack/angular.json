@@ -60,12 +60,12 @@
             "index": "src/index.html",
             "main": "src/main.webcomponent.ts",
             "tsConfig": "tsconfig.webcomponent.json",
-            "polyfills": ["zone.js"],
-            "assets": ["src/favicon.ico", "src/assets"],
-            "styles": ["src/styles.css"],
+            "polyfills": [],
+            "assets": [],
+            "styles": [],
             "scripts": [],
             "customWebpackConfig": {
-              "path": "webpack.config.js"
+              "path": "webpack.webcomponent.config.js"
             }
           },
           "configurations": {
