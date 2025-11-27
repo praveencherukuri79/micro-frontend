@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/webcomponent",
+    "types": []
+  },
+  "files": [
+    "src/main.webcomponent.ts",
+    "src/bootstrap.webcomponent.ts",
+    "src/angular-remote.ts"
+  ],
+  "include": ["src/**/*.d.ts"]
+}

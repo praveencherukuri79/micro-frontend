@@ -12,6 +12,9 @@ const Header = lazy(() => import('shellApp/Header'));
 const Footer = lazy(() => import('shellApp/Footer'));
 const ProductsPage = lazy(() => import('productsApp/ProductsPage'));
 const ContactPage = lazy(() => import('contactApp/ContactPage'));
+const AngularWebpackPage = lazy(() => import('./pages/AngularWebpackPage'));
+const AngularVitePage = lazy(() => import('./pages/AngularVitePage'));
+const VuePage = lazy(() => import('./pages/VuePage'));
 
 // Loading component
 const LoadingFallback = () => (
@@ -46,7 +49,7 @@ const AppContent = () => {
           themeMode={mode}
           cartCount={cartCount}
           onToggleTheme={toggleTheme}
-          onNavigate={(path) => navigate(path)}
+          onNavigate={(path: string) => navigate(path)}
         />
       </Suspense>
       
@@ -56,6 +59,9 @@ const AppContent = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/angular-webpack" element={<AngularWebpackPage />} />
+            <Route path="/angular-vite" element={<AngularVitePage />} />
+            <Route path="/vue" element={<VuePage />} />
           </Routes>
         </Suspense>
       </Box>

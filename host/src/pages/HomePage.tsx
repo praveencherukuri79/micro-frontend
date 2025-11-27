@@ -1,5 +1,5 @@
-import { Container, Typography, Box, Button, Grid, Card, CardContent, CardMedia } from '@mui/material';
-import { Storefront, Support, Security } from '@mui/icons-material';
+import { Security, Storefront, Support } from '@mui/icons-material';
+import { Box, Button, Card, CardContent, Container, Grid, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 export const HomePage = () => {

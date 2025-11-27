@@ -41,8 +41,17 @@ export const Header = ({
           <Button color="inherit" onClick={() => handleNavigation('/products')}>
             Products
           </Button>
+          <Button color="inherit" onClick={() => handleNavigation('/angular-webpack')}>
+            Angular (WP)
+          </Button>
+          <Button color="inherit" onClick={() => handleNavigation('/angular-vite')}>
+            Angular (Vite)
+          </Button>
+          <Button color="inherit" onClick={() => handleNavigation('/vue')}>
+            Vue
+          </Button>
           <Button color="inherit" onClick={() => handleNavigation('/contact')}>
-            Contact Us
+            Contact
           </Button>
         </Box>
 

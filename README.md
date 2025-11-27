@@ -12,10 +12,12 @@ A complete setup where each remote component works in **TWO ways** from a single
 | **Web Component** | ANY framework | `<products-widget>` HTML tag |
 
 **Applications:**
-- **Host** (Port 5000) - Main React app
-- **Shell** (Port 5003) - Header & Footer components
-- **Products** (Port 5001) - Product catalog
-- **Contact** (Port 5002) - Contact form
+- **Host** (Port 5000) - Main React app orchestrating all remotes
+- **Shell** (Port 5003) - React - Header & Footer components
+- **Products** (Port 5001) - React - Product catalog showcase
+- **Contact** (Port 5002) - React - Contact form implementation
+- **Angular** (Port 5004) - Angular 17 + Webpack - Data dashboard remote
+- **Vue** (Port 5005) - Vue 3 - Settings & configuration remote
 
 ## 🚀 Quick Start
 
@@ -47,21 +49,40 @@ Open **http://localhost:5000**
 Then open `examples/webcomponent-example.html` or integrate into any app:
 
 ```html
+<!-- React Remote as Web Component -->
 <products-widget theme="light"></products-widget>
 <script type="module" src="./products-widget.js"></script>
+
+<!-- Angular Remote as Web Component -->
+<angular-widget theme="dark"></angular-widget>
+<script type="module" src="./angular-widget.js"></script>
+
+<!-- Vue Remote as Web Component -->
+<vue-widget theme="light"></vue-widget>
+<script type="module" src="./vue-widget.js"></script>
 ```
 
 ## 📁 Project Structure
 
 ```
 module-federation/
-├── host/                    # Main application (Port 5000)
+├── host/                    # React - Main application (Port 5000)
 ├── remotes/
-│   ├── shell/              # Header/Footer (Port 5003)
-│   ├── products/           # Products page (Port 5001)
-│   └── contact/            # Contact page (Port 5002)
+│   ├── shell/              # React - Header/Footer (Port 5003)
+│   ├── products/           # React - Products showcase (Port 5001)
+│   ├── contact/            # React - Contact form (Port 5002)
+│   ├── angular-webpack/   # Angular 17 + Webpack MF (Port 5004)
+│   │   ├── components/app/ # Main Angular component (ts, html, css)
+│   │   ├── services/       # RxJS services
+│   │   ├── angular-remote.ts  # Module Federation entry
+│   │   └── webcomponent.ts    # Web Component wrapper
+│   └── vue/                # Vue 3 - Settings remote (Port 5005)
+│       ├── components/app/ # Main Vue component (SFC)
+│       ├── stores/         # Pinia stores
+│       ├── vue-remote.ts      # Module Federation entry
+│       └── webcomponent.ts    # Web Component wrapper
 ├── examples/               # Web Component examples
-├── start*.ps1              # Development scripts
+├── start*.ps1              # Development scripts (with parallel builds!)
 └── *.md                    # Documentation
 ```
 
@@ -77,6 +98,8 @@ federation({
     shellApp: 'http://localhost:5003/assets/remoteEntry.js',
     productsApp: 'http://localhost:5001/assets/remoteEntry.js',
     contactApp: 'http://localhost:5002/assets/remoteEntry.js',
+    angularApp: 'http://localhost:5004/remoteEntry.js',  // Webpack (no /assets/)
+    vueApp: 'http://localhost:5005/assets/remoteEntry.js',
   },
   shared: ['react', 'react-dom', '@mui/material', 'zustand'],
 })
@@ -98,27 +121,39 @@ federation({
 
 ## 🎨 Features
 
-- ✅ **Dual-mode** - Module Federation + Web Components
-- ✅ **React 18 + TypeScript** - Modern React with type safety
-- ✅ **Material-UI** - Beautiful, responsive components
-- ✅ **Vite** - Lightning-fast builds
-- ✅ **Zustand** - Lightweight state management
-- ✅ **Light/Dark Theme** - Toggle across all modules
+- ✅ **Dual-mode Architecture** - Module Federation + Web Components
+- ✅ **Multi-framework** - React 18, Angular 17, Vue 3
+- ✅ **TypeScript Everywhere** - Full type safety across all remotes
+- ✅ **Material-UI** - Beautiful, responsive React components
+- ✅ **RxJS + Pinia** - State management for Angular/Vue
+- ✅ **Vite** - Lightning-fast builds for all frameworks
+- ✅ **Light/Dark Theme** - Consistent theming across all remotes
 - ✅ **React Router** - Client-side navigation
-- ✅ **Auto-rebuild** - Watch mode for development
+- ✅ **Auto-rebuild** - Watch mode with parallel builds
 - ✅ **Error Boundaries** - Graceful error handling
+- ✅ **Clean Architecture** - Separated HTML/CSS/TS for maintainability
 
 ## 📦 Tech Stack
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| React | 18.3 | UI Library |
-| TypeScript | 5.9 | Type Safety |
-| Vite | 5.4 | Build Tool |
-| Material-UI | 5.18 | UI Components |
-| Zustand | 4.5 | State Management |
-| React Router | 6.30 | Routing |
-| @originjs/vite-plugin-federation | 1.4 | Module Federation |
+| **Frameworks** |
+| React | 18.3 | Host + 3 React remotes |
+| Angular | 17.3 | Angular remote (data dashboard) |
+| Vue | 3.4 | Vue remote (settings page) |
+| **Core Tools** |
+| TypeScript | 5.9 | Type safety across all remotes |
+| Vite | 5.4 | Build tool for all applications |
+| @originjs/vite-plugin-federation | 1.4 | Module Federation support |
+| **React Ecosystem** |
+| Material-UI | 5.18 | UI Components (React remotes) |
+| Zustand | 4.5 | State management (React) |
+| React Router | 6.30 | Client-side routing |
+| **Angular Ecosystem** |
+| RxJS | 7.8 | State management (Angular) |
+| Zone.js | 0.15 | Change detection (Angular) |
+| **Vue Ecosystem** |
+| Pinia | 2.1 | State management (Vue) |
 
 ## 🔧 Development
 
@@ -130,7 +165,7 @@ federation({
 ### Install Dependencies
 
 ```powershell
-# Fast parallel install (recommended)
+# Fast parallel install for all 6 apps (recommended)
 .\install-all.ps1
 
 # Or manually in each app
@@ -138,6 +173,8 @@ cd host && npm install
 cd ../remotes/shell && npm install
 cd ../products && npm install
 cd ../contact && npm install
+cd ../angular && npm install
+cd ../vue && npm install
 ```
 
 ### Development Workflow
@@ -167,12 +204,17 @@ cd host && npm run dev
 
 ### Module Federation
 
-```bash
-# Build all
+```powershell
+# Build all (parallel builds with start-preview.ps1)
+.\start-preview.ps1
+
+# Or manually
 cd host && npm run build
 cd ../remotes/shell && npm run build
 cd ../products && npm run build
 cd ../contact && npm run build
+cd ../angular && npm run build
+cd ../vue && npm run build
 ```
 
 ### Web Components

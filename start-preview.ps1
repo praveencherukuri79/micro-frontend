@@ -4,6 +4,18 @@
 Write-Host "Starting Module Federation (Preview Mode)..." -ForegroundColor Cyan
 Write-Host ""
 
+# Kill any existing Node processes to free up ports
+Write-Host "Cleaning up ports..." -ForegroundColor Yellow
+$nodeProcesses = Get-Process -Name node -ErrorAction SilentlyContinue
+if ($nodeProcesses) {
+    $nodeProcesses | Stop-Process -Force
+    Write-Host "Killed $($nodeProcesses.Count) existing Node process(es)" -ForegroundColor Green
+    Start-Sleep -Seconds 2
+} else {
+    Write-Host "No existing Node processes found" -ForegroundColor Green
+}
+Write-Host ""
+
 # Check if dependencies are installed
 $needsInstall = $false
 
@@ -21,6 +33,18 @@ if (-not (Test-Path "remotes/products/node_modules")) {
 }
 if (-not (Test-Path "remotes/contact/node_modules")) {
     Write-Host "Contact dependencies missing..." -ForegroundColor Yellow
+    $needsInstall = $true
+}
+if (-not (Test-Path "remotes/angular-webpack/node_modules")) {
+    Write-Host "Angular Webpack dependencies missing..." -ForegroundColor Yellow
+    $needsInstall = $true
+}
+if (-not (Test-Path "remotes/angular-vite/node_modules")) {
+    Write-Host "Angular Vite dependencies missing..." -ForegroundColor Yellow
+    $needsInstall = $true
+}
+if (-not (Test-Path "remotes/vue/node_modules")) {
+    Write-Host "Vue dependencies missing..." -ForegroundColor Yellow
     $needsInstall = $true
 }
 
@@ -63,6 +87,30 @@ if ($needsInstall) {
         Write-Host "Installing Contact..." -ForegroundColor Green
     }
     
+    if (-not (Test-Path "remotes/angular-webpack/node_modules")) {
+        $installJobs += Start-Job -ScriptBlock { 
+            Set-Location $using:PWD/remotes/angular-webpack
+            npm install
+        } -Name "Install-Angular-Webpack"
+        Write-Host "Installing Angular Webpack..." -ForegroundColor Green
+    }
+    
+    if (-not (Test-Path "remotes/angular-vite/node_modules")) {
+        $installJobs += Start-Job -ScriptBlock { 
+            Set-Location $using:PWD/remotes/angular-vite
+            npm install
+        } -Name "Install-Angular-Vite"
+        Write-Host "Installing Angular Vite..." -ForegroundColor Green
+    }
+    
+    if (-not (Test-Path "remotes/vue/node_modules")) {
+        $installJobs += Start-Job -ScriptBlock { 
+            Set-Location $using:PWD/remotes/vue
+            npm install
+        } -Name "Install-Vue"
+        Write-Host "Installing Vue..." -ForegroundColor Green
+    }
+    
     # Wait for all installations to complete
     $installJobs | Wait-Job | Receive-Job
     $installJobs | Remove-Job
@@ -98,6 +146,24 @@ $jobs += Start-Job -ScriptBlock {
 } -Name "Build-Contact"
 Write-Host "Building Contact Remote..." -ForegroundColor Green
 
+$jobs += Start-Job -ScriptBlock {
+    Set-Location $using:PWD/remotes/angular-webpack
+    npm run build
+} -Name "Build-Angular-Webpack"
+Write-Host "Building Angular Webpack Remote..." -ForegroundColor Green
+
+$jobs += Start-Job -ScriptBlock {
+    Set-Location $using:PWD/remotes/angular-vite
+    npm run build
+} -Name "Build-Angular-Vite"
+Write-Host "Building Angular Vite Remote..." -ForegroundColor Green
+
+$jobs += Start-Job -ScriptBlock {
+    Set-Location $using:PWD/remotes/vue
+    npm run build
+} -Name "Build-Vue"
+Write-Host "Building Vue Remote..." -ForegroundColor Green
+
 Write-Host ""
 Write-Host "Waiting for builds to complete..." -ForegroundColor Cyan
 
@@ -131,9 +197,12 @@ Write-Host "All remotes built successfully in $([math]::Round($duration, 1)) sec
 Write-Host ""
 Write-Host "Starting servers..." -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Shell Remote (Preview):    http://localhost:5003" -ForegroundColor Magenta
-Write-Host "Products Remote (Preview): http://localhost:5001" -ForegroundColor Magenta
-Write-Host "Contact Remote (Preview):  http://localhost:5002" -ForegroundColor Magenta  
+Write-Host "Shell Remote (Preview):         http://localhost:5003" -ForegroundColor Magenta
+Write-Host "Products Remote (Preview):      http://localhost:5001" -ForegroundColor Magenta
+Write-Host "Contact Remote (Preview):       http://localhost:5002" -ForegroundColor Magenta
+Write-Host "Angular Webpack Remote (Preview): http://localhost:5004" -ForegroundColor Magenta
+Write-Host "Angular Vite Remote (Preview):  http://localhost:5006" -ForegroundColor Magenta
+Write-Host "Vue Remote (Preview):           http://localhost:5005" -ForegroundColor Magenta
 Write-Host "Host Application (Dev):    http://localhost:5000" -ForegroundColor Green
 Write-Host ""
 Write-Host "Press Ctrl+C in any window to stop that server" -ForegroundColor Yellow
@@ -145,6 +214,12 @@ Start-Sleep -Seconds 2
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD/remotes/products'; npm run preview"
 Start-Sleep -Seconds 2
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD/remotes/contact'; npm run preview"
+Start-Sleep -Seconds 2
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD/remotes/angular-webpack'; npm run preview"
+Start-Sleep -Seconds 2
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD/remotes/angular-vite'; npm run preview"
+Start-Sleep -Seconds 2
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD/remotes/vue'; npm run preview"
 Start-Sleep -Seconds 3
 
 # Start host in dev mode

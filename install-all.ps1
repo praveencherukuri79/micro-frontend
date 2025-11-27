@@ -32,6 +32,24 @@ $jobs += Start-Job -ScriptBlock {
 } -Name "Install-Contact"
 Write-Host "Installing Contact Remote dependencies..." -ForegroundColor Green
 
+$jobs += Start-Job -ScriptBlock {
+    Set-Location $using:PWD/remotes/angular-webpack
+    npm install
+} -Name "Install-Angular-Webpack"
+Write-Host "Installing Angular Webpack dependencies..." -ForegroundColor Green
+
+$jobs += Start-Job -ScriptBlock {
+    Set-Location $using:PWD/remotes/angular-vite
+    npm install
+} -Name "Install-Angular-Vite"
+Write-Host "Installing Angular Vite dependencies..." -ForegroundColor Green
+
+$jobs += Start-Job -ScriptBlock {
+    Set-Location $using:PWD/remotes/vue
+    npm install
+} -Name "Install-Vue"
+Write-Host "Installing Vue Remote dependencies..." -ForegroundColor Green
+
 Write-Host ""
 Write-Host "Waiting for installations to complete..." -ForegroundColor Cyan
 

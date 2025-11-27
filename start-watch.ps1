@@ -4,6 +4,18 @@
 Write-Host "Starting Module Federation (Watch Mode)..." -ForegroundColor Cyan
 Write-Host ""
 
+# Kill any existing Node processes to free up ports
+Write-Host "Cleaning up ports..." -ForegroundColor Yellow
+$nodeProcesses = Get-Process -Name node -ErrorAction SilentlyContinue
+if ($nodeProcesses) {
+    $nodeProcesses | Stop-Process -Force
+    Write-Host "Killed $($nodeProcesses.Count) existing Node process(es)" -ForegroundColor Green
+    Start-Sleep -Seconds 2
+} else {
+    Write-Host "No existing Node processes found" -ForegroundColor Green
+}
+Write-Host ""
+
 Write-Host "Building all remotes in PARALLEL (initial build)..." -ForegroundColor Yellow
 Write-Host ""
 
@@ -29,6 +41,24 @@ $jobs += Start-Job -ScriptBlock {
     npm run build
 } -Name "Build-Contact"
 Write-Host "Building Contact Remote..." -ForegroundColor Green
+
+$jobs += Start-Job -ScriptBlock {
+    Set-Location $using:PWD/remotes/angular-webpack
+    npm run build
+} -Name "Build-Angular-Webpack"
+Write-Host "Building Angular Webpack Remote..." -ForegroundColor Green
+
+$jobs += Start-Job -ScriptBlock {
+    Set-Location $using:PWD/remotes/angular-vite
+    npm run build
+} -Name "Build-Angular-Vite"
+Write-Host "Building Angular Vite Remote..." -ForegroundColor Green
+
+$jobs += Start-Job -ScriptBlock {
+    Set-Location $using:PWD/remotes/vue
+    npm run build
+} -Name "Build-Vue"
+Write-Host "Building Vue Remote..." -ForegroundColor Green
 
 Write-Host ""
 Write-Host "Waiting for builds to complete..." -ForegroundColor Cyan
@@ -63,10 +93,13 @@ Write-Host "Initial builds complete in $([math]::Round($duration, 1)) seconds!" 
 Write-Host ""
 Write-Host "Starting servers in WATCH mode..." -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Shell Remote:    http://localhost:5003 (auto-rebuild enabled)" -ForegroundColor Magenta
-Write-Host "Products Remote: http://localhost:5001 (auto-rebuild enabled)" -ForegroundColor Magenta
-Write-Host "Contact Remote:  http://localhost:5002 (auto-rebuild enabled)" -ForegroundColor Magenta  
-Write-Host "Host:            http://localhost:5000" -ForegroundColor Green
+Write-Host "Shell Remote:         http://localhost:5003 (auto-rebuild enabled)" -ForegroundColor Magenta
+Write-Host "Products Remote:      http://localhost:5001 (auto-rebuild enabled)" -ForegroundColor Magenta
+Write-Host "Contact Remote:       http://localhost:5002 (auto-rebuild enabled)" -ForegroundColor Magenta
+Write-Host "Angular Webpack:      http://localhost:5004 (dev mode)" -ForegroundColor Magenta
+Write-Host "Angular Vite:         http://localhost:5006 (auto-rebuild enabled)" -ForegroundColor Magenta
+Write-Host "Vue Remote:           http://localhost:5005 (auto-rebuild enabled)" -ForegroundColor Magenta
+Write-Host "Host:                 http://localhost:5000" -ForegroundColor Green
 Write-Host ""
 Write-Host "WATCH MODE ENABLED - Remotes will auto-rebuild on file changes!" -ForegroundColor Yellow
 Write-Host "Just edit, save, and refresh your browser!" -ForegroundColor Yellow
@@ -82,6 +115,15 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD/remotes/
 Start-Sleep -Seconds 2
 
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD/remotes/contact'; Write-Host 'Contact Remote - Watch Mode' -ForegroundColor Magenta; npm run dev:watch"
+Start-Sleep -Seconds 2
+
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD/remotes/angular-webpack'; Write-Host 'Angular Webpack - Dev Mode' -ForegroundColor Magenta; npm start"
+Start-Sleep -Seconds 2
+
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD/remotes/angular-vite'; Write-Host 'Angular Vite - Watch Mode' -ForegroundColor Magenta; npm run dev:watch"
+Start-Sleep -Seconds 2
+
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD/remotes/vue'; Write-Host 'Vue Remote - Watch Mode' -ForegroundColor Magenta; npm run dev:watch"
 Start-Sleep -Seconds 3
 
 # Start host in dev mode
@@ -95,5 +137,5 @@ Write-Host "How it works:" -ForegroundColor Yellow
 Write-Host "  - Edit remote files -> Auto rebuilds -> Refresh browser" -ForegroundColor White
 Write-Host "  - Edit host files -> Auto reloads (no refresh needed)" -ForegroundColor White
 Write-Host ""
-Write-Host "You will see 4 PowerShell windows (one per app)" -ForegroundColor Cyan
+Write-Host "You will see 8 PowerShell windows (one per app)" -ForegroundColor Cyan
 Write-Host ""

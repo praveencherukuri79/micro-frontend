@@ -125,10 +125,16 @@ shared/utils/            # ❌ Causes dependency issues
 - `WEB_COMPONENTS.md` - Integration guide
 - `AI_GUIDELINES.md` - This file
 
-**❌ Don't create:**
+**❌ NEVER create:**
 - Redundant READMEs in every folder
 - Summary files that duplicate content
 - Overly verbose explanations
+- Unnecessary documentation files (SUMMARY.md, FINAL_FIX.md, etc.)
+
+**✅ ONLY edit existing docs when needed:**
+- Update `README.md` for project changes
+- Update `QUICKSTART.md` for new run commands
+- Keep changes minimal - only what's required
 
 ### 6. Communication Style
 
@@ -140,6 +146,7 @@ shared/utils/            # ❌ Causes dependency issues
 - ❌ Don't over-explain or be verbose
 - ❌ Don't commit without permission
 - ❌ Don't say "no errors" without actually checking
+- ❌ Don't create README bullshit - edit existing docs only when necessary
 
 ## 📋 Project-Specific Guidelines
 
@@ -163,6 +170,87 @@ webcomponent.tsx    // Contains JSX
 // ❌ WRONG
 webComponent.ts     // Contains JSX - will cause errors!
 ```
+
+### HTML & CSS Separation (Angular/Vue Remotes)
+
+**❌ CRITICAL RULE: For Angular and Vue remotes, ALWAYS keep HTML and CSS in separate files from TypeScript**
+
+**✅ CORRECT Structure:**
+```
+remotes/angular/src/
+├── components/
+│   └── analytics/
+│       ├── analytics.component.ts    ✅ TypeScript logic only
+│       ├── analytics.component.html  ✅ HTML template
+│       └── analytics.component.css   ✅ CSS styles
+├── analytics-remote.ts               ✅ Module Federation entry point
+└── app.module.ts
+
+remotes/vue/src/
+├── components/
+│   └── settings/
+│       ├── SettingsPage.vue         ✅ Vue SFC (template, script, style)
+│       └── SettingsPage.css         ✅ Optional external CSS
+├── settings-remote.ts                ✅ Module Federation entry point
+└── main.ts
+```
+
+**File Naming Convention:**
+- `[component-name]-remote.ts` - Module Federation entry point (e.g., `analytics-remote.ts`, `settings-remote.ts`)
+- `[component-name].component.ts/html/css` - Angular components
+- `[ComponentName].vue` - Vue components (PascalCase for SFC)
+
+**❌ WRONG - DON'T DO THIS:**
+```typescript
+// ❌ NEVER inline HTML in TypeScript files
+export default function mount(container: HTMLElement) {
+  container.innerHTML = `
+    <div class="my-component">
+      <!-- HTML here -->
+    </div>
+  `;
+}
+
+// ❌ NEVER inline CSS in TypeScript
+const styles = `
+  .my-component { /* CSS */ }
+`;
+```
+
+**✅ CORRECT - Proper Angular Component:**
+```typescript
+// analytics.component.ts
+@Component({
+  selector: 'app-analytics',
+  templateUrl: './analytics.component.html',  ✅
+  styleUrls: ['./analytics.component.css']    ✅
+})
+export class AnalyticsComponent {
+  // TypeScript logic only
+}
+```
+
+**✅ CORRECT - Proper Vue Component:**
+```vue
+<!-- SettingsPage.vue -->
+<template>
+  <!-- HTML here -->
+</template>
+
+<script setup lang="ts">
+// TypeScript logic
+</script>
+
+<style scoped src="./SettingsPage.css"></style>
+```
+
+**Why this matters:**
+- **Framework standards** - Follows Angular/Vue best practices
+- **Separation of concerns** - Logic, presentation, and style are separate  
+- **Maintainability** - Easy to find and edit HTML/CSS
+- **Readability** - TypeScript files focus on logic only
+- **IDE support** - Proper syntax highlighting and autocomplete
+- **Team collaboration** - Designers can edit templates without touching TS
 
 ### State Management
 
@@ -282,7 +370,7 @@ mode === 'light'  // Use constants: THEME_MODE.LIGHT
 
 ---
 
-**Last Updated:** 2025-11-26  
-**Version:** 1.0  
+**Last Updated:** 2025-11-27  
+**Version:** 1.1  
 **Status:** Active - MUST be followed by all AI assistants
 
