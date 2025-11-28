@@ -160,4 +160,4 @@ class AngularWebComponent extends HTMLElement {
   }
 }
 
-registerWebComponent("angular-widget", AngularWebComponent);
+registerWebComponent("angular-vite-widget", AngularWebComponent);
