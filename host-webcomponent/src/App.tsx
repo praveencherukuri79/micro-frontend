@@ -10,6 +10,7 @@ import { VuePage } from "./pages/VuePage";
 import { useCartStore } from "./store/cartStore";
 import { useThemeStore } from "./store/themeStore";
 import { loadWebComponents } from "./utils/loadWebComponents";
+import { NavigationHandler } from "./utils/NavigationHandler";
 import { getTheme } from "./utils/theme";
 
 function App() {
@@ -118,6 +119,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
+        <NavigationHandler />
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Box ref={headerRef}>
             <shell-widget theme={mode} cart-count={count} component="header" />

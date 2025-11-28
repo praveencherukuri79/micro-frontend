@@ -26,8 +26,14 @@ class AngularWebpackElement extends HTMLElement {
           injector,
         });
 
-        // Replace ourselves with the actual Angular custom element
-        const angularElement = new WebComponentClass();
+        // Register the internal element with a unique name
+        const internalTagName = `angular-webpack-internal-${Date.now()}`;
+        if (!customElements.get(internalTagName)) {
+          customElements.define(internalTagName, WebComponentClass);
+        }
+
+        // Create the element using document.createElement (Safe way)
+        const angularElement = document.createElement(internalTagName);
 
         // Copy attributes
         for (let i = 0; i < this.attributes.length; i++) {
@@ -35,10 +41,8 @@ class AngularWebpackElement extends HTMLElement {
           angularElement.setAttribute(attr.name, attr.value);
         }
 
-        // Replace in DOM
-        if (this.parentNode) {
-          this.parentNode.replaceChild(angularElement, this);
-        }
+        // Append to this element (acting as a wrapper)
+        this.appendChild(angularElement);
 
         console.log('Angular Webpack widget bootstrapped');
       })
@@ -46,8 +50,7 @@ class AngularWebpackElement extends HTMLElement {
         console.error('Angular Webpack web component bootstrap error:', err);
         this.innerHTML = `<div style="padding:2rem;background:#ffebee;border:1px solid #f44336;border-radius:8px;color:#c62828;">
           <h3 style="margin:0 0 .5rem 0;">Error Loading Angular Remote</h3>
-          <p style="margin:0;">${
-            err instanceof Error ? err.message : 'Unknown error'
+          <p style="margin:0;">${err instanceof Error ? err.message : 'Unknown error'
           }</p>
         </div>`;
       });
