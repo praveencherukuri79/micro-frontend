@@ -6,16 +6,18 @@ Modern e-commerce application demonstrating **dual-mode micro-frontend architect
 
 A complete setup where each remote component works in **TWO ways** from a single codebase:
 
-| Mode | Use Case | Integration |
-|------|----------|-------------|
+| Mode                  | Use Case              | Integration                     |
+| --------------------- | --------------------- | ------------------------------- |
 | **Module Federation** | React micro-frontends | `import('remoteApp/Component')` |
-| **Web Component** | ANY framework | `<products-widget>` HTML tag |
+| **Web Component**     | ANY framework         | `<products-widget>` HTML tag    |
 
 **Host Applications:**
+
 - **Host** (Port 5000) - Module Federation host app
 - **Host-WebComponent** (Port 5100) - Web Components host app
 
 **Remote Applications:**
+
 - **Shell** (Port 5003) - React - Header & Footer components
 - **Products** (Port 5001) - React - Product catalog showcase
 - **Contact** (Port 5002) - React - Contact form implementation
@@ -28,45 +30,43 @@ A complete setup where each remote component works in **TWO ways** from a single
 ### Module Federation Mode
 
 ```powershell
-# First time: Install dependencies (parallel, fast!)
-.\install-all.ps1
+# First time: Install dependencies
+.\scripts\utils-install-all.ps1
 
-# Instant start (if already built)
-.\start.ps1
+# Quick start (if already built)
+.\scripts\mf-start-quick.ps1
 
-# With auto-rebuild (recommended for development)
-.\start-watch.ps1
+# Watch mode (auto-rebuild on file change) - RECOMMENDED
+.\scripts\mf-start-watch.ps1
 
-# Build first, then start (parallel builds!)
-.\start-preview.ps1
+# Production preview mode (build first, then start)
+.\scripts\mf-start-preview.ps1
 ```
 
 Open **http://localhost:5000**
 
 ### Web Component Mode
 
-**Option 1: Standalone HTML Examples**
-
 ```powershell
-# Build all web components
-.\build-webcomponents.ps1
+# Complete workflow: build, copy, and start
+.\scripts\wc-start.ps1
+
+# Quick start (if already built)
+.\scripts\wc-start-quick.ps1
 ```
 
-Then open `widgets/webcomponent-example.html` or integrate into any app:
+Open **http://localhost:5010**
 
-**Option 2: Full React Host with Web Components**
+**Full workflow (`wc-start.ps1`):**
 
-```powershell
-# Build all widgets and start the web component host
-.\start-webcomponents.ps1
-```
+- Builds all remotes as web components in parallel
+- Copies widgets to central `widgets/` directory
+- Starts the web component host application
 
-Open **http://localhost:5100**
+**Quick start (`wc-start-quick.ps1`):**
 
-This will:
-- Build all remote web components in parallel
-- Copy them to `host-webcomponent/public/widgets/`
-- Start a React host that uses `<shell-widget>`, `<products-widget>`, etc.
+- Just starts the host (no build, no copy)
+- Use when widgets are already built
 
 ```html
 <!-- React Remote as Web Component -->
@@ -86,23 +86,24 @@ This will:
 
 ```
 module-federation/
-├── host/                    # React - Main application (Port 5000)
+├── host/                    # Main MF host (Port 5000)
+├── host-webcomponent/       # Web Component host (Port 5010)
 ├── remotes/
-│   ├── shell/              # React - Header/Footer (Port 5003)
-│   ├── products/           # React - Products showcase (Port 5001)
-│   ├── contact/            # React - Contact form (Port 5002)
-│   ├── angular-webpack/   # Angular 17 + Webpack MF (Port 5004)
-│   │   ├── components/app/ # Main Angular component (ts, html, css)
-│   │   ├── services/       # RxJS services
-│   │   ├── angular-remote.ts  # Module Federation entry
-│   │   └── webcomponent.ts    # Web Component wrapper
-│   └── vue/                # Vue 3 - Settings remote (Port 5005)
-│       ├── components/app/ # Main Vue component (SFC)
-│       ├── stores/         # Pinia stores
-│       ├── vue-remote.ts      # Module Federation entry
-│       └── webcomponent.ts    # Web Component wrapper
-├── widgets/                # Built Web Components (generated)
-├── start*.ps1              # Development scripts (with parallel builds!)
+│   ├── shell/              # React + Vite (Port 5003)
+│   │   ├── .config/        # Build configurations separated
+│   │   │   ├── module-federation/  # MF config
+│   │   │   └── webcomponent/       # WC config
+│   │   └── src/            # Source code
+│   ├── products/           # React + Vite (Port 5001)
+│   ├── contact/            # React + Vite (Port 5002)
+│   ├── angular-webpack/    # Angular + Webpack (Port 5004)
+│   ├── angular-vite/       # Angular + Vite (Port 5006)
+│   └── vue/                # Vue + Vite (Port 5005)
+├── scripts/                # Automation scripts
+│   ├── mf-*.ps1           # Module Federation scripts
+│   ├── wc-*.ps1           # Web Component scripts
+│   └── utils-*.ps1        # Utility scripts
+├── widgets/                # Built web components (generated)
 └── *.md                    # Documentation
 ```
 
@@ -113,16 +114,16 @@ module-federation/
 ```typescript
 // host/vite.config.ts
 federation({
-  name: 'host-app',
+  name: "host-app",
   remotes: {
-    shellApp: 'http://localhost:5003/assets/remoteEntry.js',
-    productsApp: 'http://localhost:5001/assets/remoteEntry.js',
-    contactApp: 'http://localhost:5002/assets/remoteEntry.js',
-    angularApp: 'http://localhost:5004/remoteEntry.js',  // Webpack (no /assets/)
-    vueApp: 'http://localhost:5005/assets/remoteEntry.js',
+    shellApp: "http://localhost:5003/assets/remoteEntry.js",
+    productsApp: "http://localhost:5001/assets/remoteEntry.js",
+    contactApp: "http://localhost:5002/assets/remoteEntry.js",
+    angularApp: "http://localhost:5004/remoteEntry.js", // Webpack (no /assets/)
+    vueApp: "http://localhost:5005/assets/remoteEntry.js",
   },
-  shared: ['react', 'react-dom', '@mui/material', 'zustand'],
-})
+  shared: ["react", "react-dom", "@mui/material", "zustand"],
+});
 ```
 
 ### Remote Configuration
@@ -130,13 +131,13 @@ federation({
 ```typescript
 // remotes/products/vite.config.ts
 federation({
-  name: 'productsApp',
-  filename: 'remoteEntry.js',
+  name: "productsApp",
+  filename: "remoteEntry.js",
   exposes: {
-    './ProductsPage': './src/ProductsPage',
+    "./ProductsPage": "./src/ProductsPage",
   },
-  shared: ['react', 'react-dom', '@mui/material', 'zustand'],
-})
+  shared: ["react", "react-dom", "@mui/material", "zustand"],
+});
 ```
 
 ## 🎨 Features
@@ -155,25 +156,25 @@ federation({
 
 ## 📦 Tech Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Frameworks** |
-| React | 18.3 | Host + 3 React remotes |
-| Angular | 17.3 | Angular remote (data dashboard) |
-| Vue | 3.4 | Vue remote (settings page) |
-| **Core Tools** |
-| TypeScript | 5.9 | Type safety across all remotes |
-| Vite | 5.4 | Build tool for all applications |
-| @originjs/vite-plugin-federation | 1.4 | Module Federation support |
-| **React Ecosystem** |
-| Material-UI | 5.18 | UI Components (React remotes) |
-| Zustand | 4.5 | State management (React) |
-| React Router | 6.30 | Client-side routing |
-| **Angular Ecosystem** |
-| RxJS | 7.8 | State management (Angular) |
-| Zone.js | 0.15 | Change detection (Angular) |
-| **Vue Ecosystem** |
-| Pinia | 2.1 | State management (Vue) |
+| Technology                       | Version | Purpose                         |
+| -------------------------------- | ------- | ------------------------------- |
+| **Frameworks**                   |
+| React                            | 18.3    | Host + 3 React remotes          |
+| Angular                          | 17.3    | Angular remote (data dashboard) |
+| Vue                              | 3.4     | Vue remote (settings page)      |
+| **Core Tools**                   |
+| TypeScript                       | 5.9     | Type safety across all remotes  |
+| Vite                             | 5.4     | Build tool for all applications |
+| @originjs/vite-plugin-federation | 1.4     | Module Federation support       |
+| **React Ecosystem**              |
+| Material-UI                      | 5.18    | UI Components (React remotes)   |
+| Zustand                          | 4.5     | State management (React)        |
+| React Router                     | 6.30    | Client-side routing             |
+| **Angular Ecosystem**            |
+| RxJS                             | 7.8     | State management (Angular)      |
+| Zone.js                          | 0.15    | Change detection (Angular)      |
+| **Vue Ecosystem**                |
+| Pinia                            | 2.1     | State management (Vue)          |
 
 ## 🔧 Development
 
@@ -263,6 +264,7 @@ Each remote can be packaged as a standalone Web Component:
 ```
 
 **Available widgets:**
+
 - `<products-widget>` - Product catalog
 - `<contact-widget>` - Contact form
 - `<shell-widget>` - Header/Footer
@@ -271,22 +273,24 @@ Each remote can be packaged as a standalone Web Component:
 
 ## 📚 Documentation
 
-| File | Description |
-|------|-------------|
-| [README.md](README.md) | This file - project overview |
-| [QUICKSTART.md](QUICKSTART.md) | Quick setup and running guide |
-| [WEB_COMPONENTS.md](WEB_COMPONENTS.md) | Web Component integration |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture |
+| File                                   | Description                   |
+| -------------------------------------- | ----------------------------- |
+| [README.md](README.md)                 | This file - project overview  |
+| [QUICKSTART.md](QUICKSTART.md)         | Quick setup and running guide |
+| [WEB_COMPONENTS.md](WEB_COMPONENTS.md) | Web Component integration     |
+| [ARCHITECTURE.md](ARCHITECTURE.md)     | System architecture           |
 
 ## 🎯 Use Cases
 
 ### Module Federation Mode
+
 - Building React micro-frontends
 - Multiple teams, independent deployment
 - Shared state and dependencies
 - Runtime integration
 
 ### Web Component Mode
+
 - Integrate into WordPress, Shopify
 - Use in Vue, Angular, Svelte apps
 - Embed in marketing sites
@@ -295,12 +299,12 @@ Each remote can be packaged as a standalone Web Component:
 
 ## 🐛 Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| "Failed to fetch remoteEntry.js" | Start all remotes first |
-| Changes not showing | Rebuild remote: `npm run build` |
-| Port already in use | Kill process or change port |
-| Module not found | Check remote is running and URL is correct |
+| Problem                          | Solution                                   |
+| -------------------------------- | ------------------------------------------ |
+| "Failed to fetch remoteEntry.js" | Start all remotes first                    |
+| Changes not showing              | Rebuild remote: `npm run build`            |
+| Port already in use              | Kill process or change port                |
+| Module not found                 | Check remote is running and URL is correct |
 
 ## 🚀 Deployment
 

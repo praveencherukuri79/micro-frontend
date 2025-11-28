@@ -3,9 +3,6 @@
     <div class="app-header">
       <h1>Vue Remote</h1>
       <p class="subtitle">Built with Vue 3 + Pinia + TypeScript</p>
-      <button class="theme-toggle" @click="toggleTheme">
-        {{ themeMode === 'light' ? '🌙 Dark' : '☀️ Light' }}
-      </button>
     </div>
 
     <div class="settings-sections">
@@ -80,7 +77,9 @@
     </div>
 
     <div class="footer-actions">
-      <button class="btn-secondary" @click="resetSettings">Reset to Defaults</button>
+      <button class="btn-secondary" @click="resetSettings">
+        Reset to Defaults
+      </button>
       <button class="btn-primary" @click="saveSettings">Save Changes</button>
     </div>
 
@@ -94,18 +93,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useThemeStore } from '../../stores/theme';
-import { useSettingsStore } from '../../stores/settings';
-import ToggleSwitch from '../ToggleSwitch.vue';
-import SettingItem from '../SettingItem.vue';
+import { computed } from "vue";
+import { useThemeStore } from "../../stores/theme";
+import { useSettingsStore } from "../../stores/settings";
+import ToggleSwitch from "../ToggleSwitch.vue";
+import SettingItem from "../SettingItem.vue";
 
 interface Props {
-  initialTheme?: 'light' | 'dark';
+  initialTheme?: "light" | "dark";
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  initialTheme: 'light',
+  initialTheme: "light",
 });
 
 const themeStore = useThemeStore();
@@ -116,21 +115,16 @@ themeStore.setTheme(props.initialTheme);
 const themeMode = computed(() => themeStore.mode);
 const settings = computed(() => settingsStore.settings);
 
-const toggleTheme = () => {
-  themeStore.toggleTheme();
-};
-
 const saveSettings = () => {
   settingsStore.saveSettings();
-  alert('Settings saved successfully!');
+  alert("Settings saved successfully!");
 };
 
 const resetSettings = () => {
-  if (confirm('Are you sure you want to reset all settings to defaults?')) {
+  if (confirm("Are you sure you want to reset all settings to defaults?")) {
     settingsStore.resetSettings();
   }
 };
 </script>
 
 <style scoped src="./App.css"></style>
-

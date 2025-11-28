@@ -23,5 +23,16 @@
     "typescript": "^5.4.3",
     "vite": "^5.2.8",
     "vue-tsc": "^2.0.7"
+  },
+  "microfrontend": {
+    "type": "vue-vite",
+    "port": 5005,
+    "exposes": {
+      "./App": "./src/vue-remote.ts"
+    },
+    "webcomponent": {
+      "name": "VueWidget",
+      "tag": "vue-widget"
+    }
   }
 }

@@ -27,5 +27,16 @@
     "concurrently": "^9.2.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.7"
+  },
+  "microfrontend": {
+    "type": "react-vite",
+    "port": 5002,
+    "exposes": {
+      "./ContactPage": "./src/ContactPage"
+    },
+    "webcomponent": {
+      "name": "ContactWidget",
+      "tag": "contact-widget"
+    }
   }
 }

@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { logger } from '../utils/logger';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { logger } from "../utils/logger";
 
 interface User {
   name: string;
@@ -24,32 +24,31 @@ export const useAppStore = create<AppState>()(
       user: null,
       cartCount: 0,
       setUser: (user) => {
-        logger.debug('User set:', user?.email);
+        logger.debug("User set:", user?.email);
         set({ user });
       },
       addToCart: () =>
         set((state) => {
           const newCount = Math.min(state.cartCount + 1, MAX_CART_ITEMS);
           if (newCount >= MAX_CART_ITEMS) {
-            logger.warn('Maximum cart items reached');
+            logger.warn("Maximum cart items reached");
           }
-          logger.debug('Added to cart. New count:', newCount);
+          logger.debug("Added to cart. New count:", newCount);
           return { cartCount: newCount };
         }),
       removeFromCart: () =>
         set((state) => {
           const newCount = Math.max(0, state.cartCount - 1);
-          logger.debug('Removed from cart. New count:', newCount);
+          logger.debug("Removed from cart. New count:", newCount);
           return { cartCount: newCount };
         }),
       clearCart: () => {
-        logger.debug('Cart cleared');
+        logger.debug("Cart cleared");
         set({ cartCount: 0 });
       },
     }),
     {
-      name: 'app-storage',
+      name: "app-storage",
     }
   )
 );
-

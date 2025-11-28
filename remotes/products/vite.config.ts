@@ -1,27 +1,18 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import federation from '@originjs/vite-plugin-federation';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import federation from "@originjs/vite-plugin-federation";
+import {
+  federationConfig,
+  buildConfig,
+  serverConfig,
+} from "./.config/module-federation/federation.config";
 
+/**
+ * Vite Configuration for Products Remote (Module Federation Mode)
+ * Build configs are separated in .config/ directory
+ */
 export default defineConfig({
-  plugins: [
-    react(),
-    federation({
-      name: 'productsApp',
-      filename: 'remoteEntry.js',
-      exposes: {
-        './ProductsPage': './src/ProductsPage',
-      },
-      shared: ['react', 'react-dom', '@mui/material', '@emotion/react', '@emotion/styled', 'zustand'],
-    }),
-  ],
-  build: {
-    modulePreload: false,
-    target: 'esnext',
-    minify: false,
-    cssCodeSplit: false,
-  },
-  server: {
-    port: 5001,
-  },
+  plugins: [react(), federation(federationConfig)],
+  build: buildConfig,
+  server: serverConfig,
 });
-

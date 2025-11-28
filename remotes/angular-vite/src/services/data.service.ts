@@ -77,4 +77,3 @@ export class DataService {
     this.dataSubject.next(fallbackData);
   }
 }
-

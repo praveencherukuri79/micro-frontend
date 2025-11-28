@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
 export interface UserSettings {
   notifications: boolean;
@@ -15,25 +15,28 @@ export interface UserSettings {
 const DEFAULT_SETTINGS: UserSettings = {
   notifications: true,
   autoSave: true,
-  language: 'en',
+  language: "en",
   twoFactorAuth: false,
   dataCollection: true,
-  sessionTimeout: '30',
+  sessionTimeout: "30",
   compactMode: false,
   animations: true,
 };
 
-export const useSettingsStore = defineStore('settings', () => {
+export const useSettingsStore = defineStore("settings", () => {
   // State
   const settings = ref<UserSettings>(loadSettings());
 
   // Actions
   function saveSettings(): void {
     try {
-      localStorage.setItem('vue-remote-settings', JSON.stringify(settings.value));
-      console.log('Settings saved successfully');
+      localStorage.setItem(
+        "vue-remote-settings",
+        JSON.stringify(settings.value)
+      );
+      console.log("Settings saved successfully");
     } catch (error) {
-      console.error('Error saving settings:', error);
+      console.error("Error saving settings:", error);
       throw error;
     }
   }
@@ -42,9 +45,9 @@ export const useSettingsStore = defineStore('settings', () => {
     try {
       settings.value = { ...DEFAULT_SETTINGS };
       saveSettings();
-      console.log('Settings reset to defaults');
+      console.log("Settings reset to defaults");
     } catch (error) {
-      console.error('Error resetting settings:', error);
+      console.error("Error resetting settings:", error);
       throw error;
     }
   }
@@ -64,13 +67,13 @@ export const useSettingsStore = defineStore('settings', () => {
   // Helper functions
   function loadSettings(): UserSettings {
     try {
-      const stored = localStorage.getItem('vue-remote-settings');
+      const stored = localStorage.getItem("vue-remote-settings");
       if (stored) {
         const parsed = JSON.parse(stored);
         return { ...DEFAULT_SETTINGS, ...parsed };
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
+      console.error("Error loading settings:", error);
     }
     return { ...DEFAULT_SETTINGS };
   }
@@ -82,4 +85,3 @@ export const useSettingsStore = defineStore('settings', () => {
     updateSetting,
   };
 });
-

@@ -1,21 +1,21 @@
-import { CssBaseline, ThemeProvider } from '@mui/material';
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import ProductsPage from './ProductsPage';
-import { createWebComponentTheme } from './utils/theme';
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import ProductsPage from "./ProductsPage";
+import { createWebComponentTheme } from "./utils/theme";
 import {
   ThemeMode,
   getThemeMode,
   registerWebComponent,
   unmountReactRoot,
-} from './utils/webComponent';
+} from "./utils/webComponent";
 
 class ProductsWebComponent extends HTMLElement {
   private root: ReactDOM.Root | null = null;
-  private themeMode: ThemeMode = 'light';
+  private themeMode: ThemeMode = "light";
 
   static get observedAttributes() {
-    return ['theme'];
+    return ["theme"];
   }
 
   connectedCallback() {
@@ -28,7 +28,7 @@ class ProductsWebComponent extends HTMLElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (name === 'theme' && oldValue !== newValue) {
+    if (name === "theme" && oldValue !== newValue) {
       this.themeMode = getThemeMode(newValue);
       this.mount();
     }
@@ -39,8 +39,8 @@ class ProductsWebComponent extends HTMLElement {
       this.root.unmount();
     }
 
-    this.innerHTML = '';
-    const mountPoint = document.createElement('div');
+    this.innerHTML = "";
+    const mountPoint = document.createElement("div");
     this.appendChild(mountPoint);
 
     const theme = createWebComponentTheme(this.themeMode);
@@ -57,6 +57,6 @@ class ProductsWebComponent extends HTMLElement {
   }
 }
 
-registerWebComponent('products-widget', ProductsWebComponent);
+registerWebComponent("products-widget", ProductsWebComponent);
 
 export default ProductsWebComponent;

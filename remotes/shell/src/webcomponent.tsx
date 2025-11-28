@@ -1,25 +1,25 @@
-import { CssBaseline, ThemeProvider } from '@mui/material';
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { Footer } from './components/Footer';
-import { Header } from './components/Header';
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { Footer } from "./components/Footer";
+import { Header } from "./components/Header";
 import {
   ThemeMode,
   getThemeMode,
   registerWebComponent,
   safeParseInt,
   unmountReactRoot,
-} from './utils/webComponent';
-import { createWebComponentTheme } from './utils/theme';
+} from "./utils/webComponent";
+import { createWebComponentTheme } from "./utils/theme";
 
 class ShellWebComponent extends HTMLElement {
   private root: ReactDOM.Root | null = null;
-  private themeMode: ThemeMode = 'light';
+  private themeMode: ThemeMode = "light";
   private cartCount: number = 0;
-  private component: 'header' | 'footer' = 'header';
+  private component: "header" | "footer" = "header";
 
   static get observedAttributes() {
-    return ['theme', 'cart-count', 'component'];
+    return ["theme", "cart-count", "component"];
   }
 
   connectedCallback() {
@@ -35,14 +35,14 @@ class ShellWebComponent extends HTMLElement {
     if (oldValue === newValue) return;
 
     switch (name) {
-      case 'theme':
+      case "theme":
         this.themeMode = getThemeMode(newValue);
         break;
-      case 'cart-count':
+      case "cart-count":
         this.cartCount = safeParseInt(newValue);
         break;
-      case 'component':
-        this.component = (newValue as 'header' | 'footer') || 'header';
+      case "component":
+        this.component = (newValue as "header" | "footer") || "header";
         break;
     }
 
@@ -54,15 +54,15 @@ class ShellWebComponent extends HTMLElement {
       this.root.unmount();
     }
 
-    this.innerHTML = '';
-    const mountPoint = document.createElement('div');
+    this.innerHTML = "";
+    const mountPoint = document.createElement("div");
     this.appendChild(mountPoint);
 
     const theme = createWebComponentTheme(this.themeMode);
 
     const handleThemeToggle = () => {
       this.dispatchEvent(
-        new CustomEvent('theme-toggle', {
+        new CustomEvent("theme-toggle", {
           bubbles: true,
           composed: true,
         })
@@ -71,7 +71,7 @@ class ShellWebComponent extends HTMLElement {
 
     const handleNavigate = (path: string) => {
       this.dispatchEvent(
-        new CustomEvent('navigate', {
+        new CustomEvent("navigate", {
           detail: { path },
           bubbles: true,
           composed: true,
@@ -84,7 +84,7 @@ class ShellWebComponent extends HTMLElement {
       <React.StrictMode>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          {this.component === 'header' ? (
+          {this.component === "header" ? (
             <Header
               themeMode={this.themeMode}
               cartCount={this.cartCount}
@@ -100,6 +100,6 @@ class ShellWebComponent extends HTMLElement {
   }
 }
 
-registerWebComponent('shell-widget', ShellWebComponent);
+registerWebComponent("shell-widget", ShellWebComponent);
 
 export default ShellWebComponent;

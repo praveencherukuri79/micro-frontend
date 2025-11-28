@@ -16,6 +16,7 @@ import {
   getThemeMode,
   registerWebComponent,
 } from "./utils/webComponent";
+import { createErrorElement } from "./utils/errorFallback";
 
 class AngularWebComponent extends HTMLElement {
   private themeMode: ThemeMode = "light";
@@ -136,27 +137,16 @@ class AngularWebComponent extends HTMLElement {
   private showError(error: unknown): void {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
+    const details = error instanceof Error ? error.stack : undefined;
 
-    const errorDiv = document.createElement("div");
-    errorDiv.style.padding = "2rem";
-    errorDiv.style.backgroundColor = "#ffebee";
-    errorDiv.style.border = "1px solid #f44336";
-    errorDiv.style.borderRadius = "8px";
-    errorDiv.style.color = "#c62828";
-
-    const title = document.createElement("h3");
-    title.textContent = "Error Loading Angular Remote";
-    title.style.margin = "0 0 0.5rem 0";
-
-    const message = document.createElement("p");
-    message.textContent = errorMessage;
-    message.style.margin = "0";
-
-    errorDiv.appendChild(title);
-    errorDiv.appendChild(message);
+    const errorEl = createErrorElement(
+      "Error Loading Angular Remote",
+      errorMessage,
+      details
+    );
 
     this.innerHTML = "";
-    this.appendChild(errorDiv);
+    this.appendChild(errorEl);
   }
 }
 

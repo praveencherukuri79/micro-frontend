@@ -1,7 +1,7 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
-import { Box, Typography, Button, Container } from '@mui/material';
-import { Error as ErrorIcon } from '@mui/icons-material';
-import { logger } from '../utils/logger';
+import { Component, ErrorInfo, ReactNode } from "react";
+import { Box, Typography, Button, Container } from "@mui/material";
+import { Error as ErrorIcon } from "@mui/icons-material";
+import { logger } from "../utils/logger";
 
 interface Props {
   children: ReactNode;
@@ -26,17 +26,17 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
-    
+    console.error("Error caught by boundary:", error, errorInfo);
+
     // Store error info in state
     this.setState({ errorInfo });
-    
+
     // Call optional error handler
     this.props.onError?.(error, errorInfo);
-    
+
     // Production error tracking can be integrated here (Sentry, LogRocket, etc.)
     if (import.meta.env.PROD) {
-      logger.error('React Error Boundary caught error:', error);
+      logger.error("React Error Boundary caught error:", error);
     }
   }
 
@@ -55,15 +55,15 @@ export class ErrorBoundary extends Component<Props, State> {
         <Container maxWidth="sm">
           <Box
             sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '60vh',
-              textAlign: 'center',
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: "60vh",
+              textAlign: "center",
             }}
           >
-            <ErrorIcon sx={{ fontSize: 80, color: 'error.main', mb: 2 }} />
+            <ErrorIcon sx={{ fontSize: 80, color: "error.main", mb: 2 }} />
             <Typography variant="h4" gutterBottom fontWeight={600}>
               Oops! Something went wrong
             </Typography>
@@ -71,18 +71,18 @@ export class ErrorBoundary extends Component<Props, State> {
               We're sorry for the inconvenience. The page encountered an error.
             </Typography>
             {this.state.error && import.meta.env.DEV && (
-              <Box sx={{ width: '100%', mb: 2 }}>
+              <Box sx={{ width: "100%", mb: 2 }}>
                 <Typography
                   variant="body2"
                   color="error"
                   sx={{
-                    fontFamily: 'monospace',
-                    bgcolor: 'grey.100',
+                    fontFamily: "monospace",
+                    bgcolor: "grey.100",
                     p: 2,
                     borderRadius: 1,
-                    maxWidth: '100%',
-                    overflow: 'auto',
-                    textAlign: 'left',
+                    maxWidth: "100%",
+                    overflow: "auto",
+                    textAlign: "left",
                   }}
                 >
                   <strong>Error:</strong> {this.state.error.message}
@@ -91,7 +91,7 @@ export class ErrorBoundary extends Component<Props, State> {
                       <br />
                       <br />
                       <strong>Component Stack:</strong>
-                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                      <pre style={{ margin: 0, whiteSpace: "pre-wrap" }}>
                         {this.state.errorInfo.componentStack}
                       </pre>
                     </>
@@ -99,11 +99,19 @@ export class ErrorBoundary extends Component<Props, State> {
                 </Typography>
               </Box>
             )}
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button variant="outlined" size="large" onClick={this.handleReset}>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Button
+                variant="outlined"
+                size="large"
+                onClick={this.handleReset}
+              >
                 Try Again
               </Button>
-              <Button variant="contained" size="large" onClick={() => (window.location.href = '/')}>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => (window.location.href = "/")}
+              >
                 Go to Home
               </Button>
             </Box>
@@ -115,4 +123,3 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-

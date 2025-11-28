@@ -32,6 +32,7 @@ From the project root, run:
 ```
 
 This script will:
+
 1. Build all remote web components in parallel
 2. Copy the built widgets to `public/widgets/`
 3. Start the host application on `http://localhost:5100`
@@ -39,6 +40,7 @@ This script will:
 ### Manual Start
 
 1. **Build all web components** (from project root):
+
    ```powershell
    npm run build:webcomponent --prefix remotes/shell
    npm run build:webcomponent --prefix remotes/products
@@ -70,15 +72,15 @@ This script will:
 
 ## Comparison with Module Federation Host
 
-| Feature | Module Federation | Web Components |
-|---------|------------------|----------------|
-| **Port** | 5000 | 5100 |
-| **Runtime** | Webpack/Vite Federation | Native Browser APIs |
-| **Bundle Sharing** | Yes (shared dependencies) | No (isolated bundles) |
-| **Type Safety** | Partial | Custom type definitions |
-| **Browser Support** | Modern browsers | Modern browsers |
-| **Complexity** | Higher | Lower |
-| **Loading** | Async chunk loading | Script tag loading |
+| Feature             | Module Federation         | Web Components          |
+| ------------------- | ------------------------- | ----------------------- |
+| **Port**            | 5000                      | 5100                    |
+| **Runtime**         | Webpack/Vite Federation   | Native Browser APIs     |
+| **Bundle Sharing**  | Yes (shared dependencies) | No (isolated bundles)   |
+| **Type Safety**     | Partial                   | Custom type definitions |
+| **Browser Support** | Modern browsers           | Modern browsers         |
+| **Complexity**      | Higher                    | Lower                   |
+| **Loading**         | Async chunk loading       | Script tag loading      |
 
 ## Advantages of Web Components Approach
 
@@ -106,4 +108,3 @@ npm run dev      # Start dev server
 npm run build    # Build for production
 npm run preview  # Preview production build
 ```
-

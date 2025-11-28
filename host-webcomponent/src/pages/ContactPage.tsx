@@ -1,23 +1,20 @@
 import { Box } from "@mui/material";
-import { useEffect, useRef } from "react";
+import { WebComponentLoader } from "../components/WebComponentLoader";
+import { useWebComponent } from "../hooks/useWebComponent";
 import { useThemeStore } from "../store/themeStore";
 
 export const ContactPage = () => {
   const { mode } = useThemeStore();
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      const widget = containerRef.current.querySelector("contact-widget");
-      if (widget) {
-        widget.setAttribute("theme", mode);
-      }
-    }
-  }, [mode]);
+  const { containerRef, loading, error } = useWebComponent(
+    "contact-widget",
+    mode
+  );
 
   return (
-    <Box ref={containerRef} sx={{ width: "100%", minHeight: "100vh" }}>
-      <contact-widget theme={mode} />
-    </Box>
+    <WebComponentLoader loading={loading} error={error} widgetName="Contact">
+      <Box ref={containerRef} sx={{ width: "100%", minHeight: "100vh" }}>
+        <contact-widget theme={mode} />
+      </Box>
+    </WebComponentLoader>
   );
 };

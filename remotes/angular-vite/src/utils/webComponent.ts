@@ -1,10 +1,10 @@
-export type ThemeMode = 'light' | 'dark';
+export type ThemeMode = "light" | "dark";
 
 /**
  * Safely parse theme attribute value
  */
 export function getThemeMode(value: string | null): ThemeMode {
-  return value === 'dark' ? 'dark' : 'light';
+  return value === "dark" ? "dark" : "light";
 }
 
 /**
@@ -48,22 +48,21 @@ export function emitCustomEvent<T = any>(
  * Create theme colors based on mode
  */
 export function getThemeColors(mode: ThemeMode) {
-  return mode === 'light'
+  return mode === "light"
     ? {
-        primary: '#1976d2',
-        secondary: '#9c27b0',
-        background: '#f5f5f5',
-        surface: '#ffffff',
-        textPrimary: '#212121',
-        textSecondary: '#757575',
+        primary: "#1976d2",
+        secondary: "#9c27b0",
+        background: "#f5f5f5",
+        surface: "#ffffff",
+        textPrimary: "#212121",
+        textSecondary: "#757575",
       }
     : {
-        primary: '#90caf9',
-        secondary: '#ce93d8',
-        background: '#121212',
-        surface: '#1e1e1e',
-        textPrimary: '#ffffff',
-        textSecondary: '#b0b0b0',
+        primary: "#90caf9",
+        secondary: "#ce93d8",
+        background: "#121212",
+        surface: "#1e1e1e",
+        textPrimary: "#ffffff",
+        textSecondary: "#b0b0b0",
       };
 }
-

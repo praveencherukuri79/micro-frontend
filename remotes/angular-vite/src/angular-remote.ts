@@ -9,6 +9,7 @@ import "zone.js";
 import { AppModule } from "./app.module";
 import { AppComponent } from "./components/app/app.component";
 import { ThemeMode } from "./services/theme.service";
+import { showError } from "./utils/errorFallback";
 
 /**
  * Angular Remote - Module Federation entry point
@@ -72,35 +73,11 @@ export default async function mount(
   } catch (error) {
     console.error("Error mounting Angular remote:", error);
 
-    // Show error UI
-    const errorDiv = document.createElement("div");
-    errorDiv.style.padding = "2rem";
-    errorDiv.style.background = "#ffebee";
-    errorDiv.style.border = "1px solid #f44336";
-    errorDiv.style.borderRadius = "8px";
-    errorDiv.style.color = "#c62828";
-
-    const title = document.createElement("h3");
-    title.textContent = "Error Loading Angular Remote";
-    title.style.margin = "0 0 0.5rem 0";
-
-    const message = document.createElement("p");
-    message.textContent =
+    const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    message.style.margin = "0";
+    const details = error instanceof Error ? error.stack : undefined;
 
-    const details = document.createElement("pre");
-    details.textContent = error instanceof Error ? error.stack || "" : "";
-    details.style.fontSize = "0.75rem";
-    details.style.marginTop = "1rem";
-    details.style.overflow = "auto";
-
-    errorDiv.appendChild(title);
-    errorDiv.appendChild(message);
-    if (error instanceof Error && error.stack) {
-      errorDiv.appendChild(details);
-    }
-    container.appendChild(errorDiv);
+    showError(container, "Error Loading Angular Remote", errorMessage, details);
 
     return () => {};
   }

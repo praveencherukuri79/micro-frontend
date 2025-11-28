@@ -11,8 +11,8 @@ export default defineConfig({
         shellApp: "http://localhost:5003/assets/remoteEntry.js",
         productsApp: "http://localhost:5001/assets/remoteEntry.js",
         contactApp: "http://localhost:5002/assets/remoteEntry.js",
-        angularWebpack: "http://localhost:5004/remoteEntry.js",  // Webpack
-        angularVite: "http://localhost:5006/assets/remoteEntry.js",  // Vite
+        angularWebpack: "http://localhost:5004/remoteEntry.js", // Webpack
+        angularVite: "http://localhost:5006/assets/remoteEntry.js", // Vite
         vueApp: "http://localhost:5005/assets/remoteEntry.js",
       },
       shared: [

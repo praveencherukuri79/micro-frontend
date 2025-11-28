@@ -1,29 +1,34 @@
-import { Box, CircularProgress, CssBaseline, ThemeProvider } from '@mui/material';
-import { Suspense, lazy, useMemo } from 'react';
-import { BrowserRouter, Route, Routes, useNavigate } from 'react-router-dom';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { HomePage } from './pages/HomePage';
-import { useAppStore } from './store/appStore';
-import { useThemeStore } from './store/themeStore';
-import { createAppTheme } from './theme/theme';
+import {
+  Box,
+  CircularProgress,
+  CssBaseline,
+  ThemeProvider,
+} from "@mui/material";
+import { Suspense, lazy, useMemo } from "react";
+import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { HomePage } from "./pages/HomePage";
+import { useAppStore } from "./store/appStore";
+import { useThemeStore } from "./store/themeStore";
+import { createAppTheme } from "./theme/theme";
 
 // Lazy load remote components
-const Header = lazy(() => import('shellApp/Header'));
-const Footer = lazy(() => import('shellApp/Footer'));
-const ProductsPage = lazy(() => import('productsApp/ProductsPage'));
-const ContactPage = lazy(() => import('contactApp/ContactPage'));
-const AngularWebpackPage = lazy(() => import('./pages/AngularWebpackPage'));
-const AngularVitePage = lazy(() => import('./pages/AngularVitePage'));
-const VuePage = lazy(() => import('./pages/VuePage'));
+const Header = lazy(() => import("shellApp/Header"));
+const Footer = lazy(() => import("shellApp/Footer"));
+const ProductsPage = lazy(() => import("productsApp/ProductsPage"));
+const ContactPage = lazy(() => import("contactApp/ContactPage"));
+const AngularWebpackPage = lazy(() => import("./pages/AngularWebpackPage"));
+const AngularVitePage = lazy(() => import("./pages/AngularVitePage"));
+const VuePage = lazy(() => import("./pages/VuePage"));
 
 // Loading component
 const LoadingFallback = () => (
   <Box
     sx={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '60vh',
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      minHeight: "60vh",
     }}
   >
     <CircularProgress />
@@ -39,20 +44,20 @@ const AppContent = () => {
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100vh',
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
       }}
     >
       <Suspense fallback={<LoadingFallback />}>
-        <Header 
+        <Header
           themeMode={mode}
           cartCount={cartCount}
           onToggleTheme={toggleTheme}
           onNavigate={(path: string) => navigate(path)}
         />
       </Suspense>
-      
+
       <Box component="main" sx={{ flexGrow: 1 }}>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
@@ -65,7 +70,7 @@ const AppContent = () => {
           </Routes>
         </Suspense>
       </Box>
-      
+
       <Suspense fallback={null}>
         <Footer />
       </Suspense>
@@ -90,4 +95,3 @@ function App() {
 }
 
 export default App;
-

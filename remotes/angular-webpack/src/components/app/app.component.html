@@ -2,9 +2,6 @@
   <div class="app-header">
     <h1>Angular Remote (Webpack)</h1>
     <p class="subtitle">Built with Angular 17 + RxJS + TypeScript + Webpack</p>
-    <button class="theme-toggle" (click)="toggleTheme()">
-      {{ themeMode === 'light' ? '🌙 Dark' : '☀️ Light' }}
-    </button>
   </div>
 
   <div class="stats-grid">
@@ -18,7 +15,7 @@
           [class.positive]="stat.change > 0"
           [class.negative]="stat.change < 0"
         >
-          {{ stat.change > 0 ? '+' : '' }}{{ stat.change }}%
+          {{ stat.change > 0 ? "+" : "" }}{{ stat.change }}%
         </div>
       </div>
     </div>
@@ -66,4 +63,3 @@
     <span class="badge">Webpack MF (Proper)</span>
   </div>
 </div>
-

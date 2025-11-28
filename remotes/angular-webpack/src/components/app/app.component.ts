@@ -1,10 +1,10 @@
-import { CommonModule } from "@angular/common";
-import type { OnDestroy, OnInit } from "@angular/core";
-import { Component, inject, Input } from "@angular/core";
-import { Subject, takeUntil } from "rxjs";
-import { DataService } from "../../services/data.service";
-import type { ThemeMode } from "../../services/theme.service";
-import { ThemeService } from "../../services/theme.service";
+import { CommonModule } from '@angular/common';
+import type { OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
+import { Subject, takeUntil } from 'rxjs';
+import { DataService } from '../../services/data.service';
+import type { ThemeMode } from '../../services/theme.service';
+import { ThemeService } from '../../services/theme.service';
 
 interface StatCard {
   icon: string;
@@ -21,18 +21,18 @@ interface ChartDataItem {
 
 @Component({
   standalone: true,
-  selector: "app-root",
+  selector: 'app-root',
   imports: [CommonModule],
   providers: [ThemeService, DataService],
-  templateUrl: "./app.component.html",
-  styleUrls: ["./app.component.css"],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit, OnDestroy {
-  @Input() initialTheme: ThemeMode = "light";
+  @Input() initialTheme: ThemeMode = 'light';
 
   private destroy$ = new Subject<void>();
 
-  themeMode: ThemeMode = "light";
+  themeMode: ThemeMode = 'light';
   stats: StatCard[] = [];
   chartData: ChartDataItem[] = [];
 
@@ -64,33 +64,29 @@ export class AppComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  toggleTheme(): void {
-    this.themeService.toggleTheme();
-  }
-
   private updateStats(data: any): void {
     this.stats = [
       {
-        icon: "📊",
-        label: "Total Items",
+        icon: '📊',
+        label: 'Total Items',
         value: data.total.toLocaleString(),
         change: 12.5,
       },
       {
-        icon: "✅",
-        label: "Active",
+        icon: '✅',
+        label: 'Active',
         value: data.active.toLocaleString(),
         change: 8.2,
       },
       {
-        icon: "🆕",
-        label: "New Today",
+        icon: '🆕',
+        label: 'New Today',
         value: data.newToday.toLocaleString(),
         change: 15.3,
       },
       {
-        icon: "⚡",
-        label: "Performance",
+        icon: '⚡',
+        label: 'Performance',
         value: `${data.performance}%`,
         change: 5.7,
       },
@@ -99,11 +95,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private updateChartData(): void {
     this.chartData = [
-      { label: "Mon", value: 245, color: "#1976d2" },
-      { label: "Tue", value: 312, color: "#42a5f5" },
-      { label: "Wed", value: 289, color: "#1976d2" },
-      { label: "Thu", value: 401, color: "#42a5f5" },
-      { label: "Fri", value: 367, color: "#1976d2" },
+      { label: 'Mon', value: 245, color: '#1976d2' },
+      { label: 'Tue', value: 312, color: '#42a5f5' },
+      { label: 'Wed', value: 289, color: '#1976d2' },
+      { label: 'Thu', value: 401, color: '#42a5f5' },
+      { label: 'Fri', value: 367, color: '#1976d2' },
     ];
   }
 
@@ -112,4 +108,3 @@ export class AppComponent implements OnInit, OnDestroy {
     return (value / max) * 100;
   }
 }
-

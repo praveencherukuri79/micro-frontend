@@ -1,24 +1,16 @@
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
+import vue from "@vitejs/plugin-vue";
+import { defineConfig } from "vite";
+import {
+  defineConfig as wcDefineConfig,
+  webComponentConfig,
+} from "./.config/webcomponent/webcomponent.config";
 
+/**
+ * Vite Configuration for Vue Remote (Web Component Mode)
+ * Build configs are separated in .config/ directory
+ */
 export default defineConfig({
   plugins: [vue()],
-  build: {
-    outDir: 'dist-webcomponent',
-    lib: {
-      entry: './src/webcomponent.ts',
-      name: 'VueWidget',
-      fileName: 'vue-widget',
-      formats: ['iife'],
-    },
-    rollupOptions: {
-      output: {
-        inlineDynamicImports: true,
-      },
-    },
-  },
-  define: {
-    'process.env': {},
-  },
+  build: webComponentConfig as any,
+  define: wcDefineConfig,
 });
-

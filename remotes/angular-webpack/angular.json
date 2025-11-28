@@ -65,7 +65,7 @@
             "styles": [],
             "scripts": [],
             "customWebpackConfig": {
-              "path": "webpack.webcomponent.config.js"
+              "path": ".config/webcomponent/webpack.webcomponent.config.js"
             }
           },
           "configurations": {
@@ -87,10 +87,7 @@
           "defaultConfiguration": "development",
           "options": {
             "port": 5004,
-            "publicHost": "http://localhost:5004",
-            "customWebpackConfig": {
-              "path": "webpack.config.js"
-            }
+            "publicHost": "http://localhost:5004"
           }
         },
         "test": {

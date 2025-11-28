@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "dev": "ng serve",
     "start": "ng serve",
     "build": "ng build",
     "build:webcomponent": "ng run angular-webpack:build-wc",
@@ -40,5 +41,16 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.4.2"
+  },
+  "microfrontend": {
+    "type": "angular-webpack",
+    "port": 5004,
+    "exposes": {
+      "./App": "./src/angular-remote"
+    },
+    "webcomponent": {
+      "name": "AngularWebpackWidget",
+      "tag": "angular-webpack-widget"
+    }
   }
 }

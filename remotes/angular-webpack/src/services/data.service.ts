@@ -1,5 +1,5 @@
-import { Injectable } from "@angular/core";
-import { BehaviorSubject, Observable, interval } from "rxjs";
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable, interval } from 'rxjs';
 
 export interface AppData {
   total: number;
@@ -10,7 +10,7 @@ export interface AppData {
 }
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class DataService {
   private dataSubject: BehaviorSubject<AppData>;
@@ -33,7 +33,7 @@ export class DataService {
       const newData = this.generateMockData();
       this.dataSubject.next(newData);
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error('Error loading data:', error);
       this.handleError(error);
     }
   }
@@ -58,14 +58,14 @@ export class DataService {
         this.loadData();
       });
     } catch (error) {
-      console.error("Error starting auto-update:", error);
+      console.error('Error starting auto-update:', error);
     }
   }
 
   private handleError(error: unknown): void {
     const errorMessage =
-      error instanceof Error ? error.message : "Unknown error occurred";
-    console.error("Data Service Error:", errorMessage);
+      error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Data Service Error:', errorMessage);
 
     const fallbackData: AppData = {
       total: 0,
@@ -77,4 +77,3 @@ export class DataService {
     this.dataSubject.next(fallbackData);
   }
 }
-

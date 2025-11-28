@@ -1,22 +1,22 @@
-type LogLevel = 'info' | 'warn' | 'error' | 'debug';
+type LogLevel = "info" | "warn" | "error" | "debug";
 
 class Logger {
   private isDevelopment = import.meta.env.DEV;
 
   private log(level: LogLevel, message: string, ...args: unknown[]): void {
-    if (!this.isDevelopment && level === 'debug') return;
+    if (!this.isDevelopment && level === "debug") return;
 
     const timestamp = new Date().toISOString();
     const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
 
     switch (level) {
-      case 'error':
+      case "error":
         console.error(prefix, message, ...args);
         break;
-      case 'warn':
+      case "warn":
         console.warn(prefix, message, ...args);
         break;
-      case 'debug':
+      case "debug":
         console.debug(prefix, message, ...args);
         break;
       default:
@@ -25,21 +25,20 @@ class Logger {
   }
 
   info(message: string, ...args: unknown[]): void {
-    this.log('info', message, ...args);
+    this.log("info", message, ...args);
   }
 
   warn(message: string, ...args: unknown[]): void {
-    this.log('warn', message, ...args);
+    this.log("warn", message, ...args);
   }
 
   error(message: string, error?: Error | unknown, ...args: unknown[]): void {
-    this.log('error', message, error, ...args);
+    this.log("error", message, error, ...args);
   }
 
   debug(message: string, ...args: unknown[]): void {
-    this.log('debug', message, ...args);
+    this.log("debug", message, ...args);
   }
 }
 
 export const logger = new Logger();
-

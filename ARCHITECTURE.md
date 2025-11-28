@@ -139,41 +139,46 @@ npm run build:webcomponent
 ### Making Changes
 
 **Module Federation:**
+
 - Edit files → Auto rebuild → Refresh browser
 
 **Web Components:**
+
 1. Edit files
 2. Run `npm run build:webcomponent`
 3. Refresh browser
 
 ## Key Technologies
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| React | 18.3 | UI Library |
-| TypeScript | 5.9 | Type Safety |
-| Vite | 5.4 | Build Tool |
-| Material-UI | 5.18 | UI Components |
-| Zustand | 4.5 | State Management |
-| React Router | 6.30 | Routing |
-| Module Federation | 1.4 | Micro-frontends |
-| Web Components | Native | Universal integration |
+| Technology        | Version | Purpose               |
+| ----------------- | ------- | --------------------- |
+| React             | 18.3    | UI Library            |
+| TypeScript        | 5.9     | Type Safety           |
+| Vite              | 5.4     | Build Tool            |
+| Material-UI       | 5.18    | UI Components         |
+| Zustand           | 4.5     | State Management      |
+| React Router      | 6.30    | Routing               |
+| Module Federation | 1.4     | Micro-frontends       |
+| Web Components    | Native  | Universal integration |
 
 ## Why This Architecture?
 
 ### Module Federation Benefits
+
 - ✅ Runtime integration (no build-time coupling)
 - ✅ Independent deployment
 - ✅ Shared dependencies
 - ✅ Team autonomy
 
 ### Web Components Benefits
+
 - ✅ Framework agnostic
 - ✅ Standard-based
 - ✅ Encapsulation
 - ✅ Wide adoption
 
 ### Both Together
+
 - ✅ Maximum flexibility
 - ✅ Single source of truth
 - ✅ Choose the right tool for each use case
@@ -183,6 +188,7 @@ npm run build:webcomponent
 ### Component Design
 
 **✅ DO:**
+
 - Keep components self-contained
 - Accept configuration via props/attributes
 - Emit events for parent communication
@@ -190,6 +196,7 @@ npm run build:webcomponent
 - Handle loading and error states
 
 **❌ DON'T:**
+
 - Depend on parent context
 - Use global state outside component
 - Make routing assumptions
@@ -197,19 +204,21 @@ npm run build:webcomponent
 
 ### State Management
 
-| Mode | Approach |
-|------|----------|
-| **Module Federation** | Share Zustand stores across remotes |
-| **Web Component** | Self-contained state, communicate via events |
+| Mode                  | Approach                                     |
+| --------------------- | -------------------------------------------- |
+| **Module Federation** | Share Zustand stores across remotes          |
+| **Web Component**     | Self-contained state, communicate via events |
 
 ## Performance
 
 ### Module Federation
+
 - Shared dependencies → React/MUI loaded once
 - Code splitting → Lazy load remotes
 - Browser caching → Remotes cached
 
 ### Web Components
+
 - Self-contained → Includes all dependencies
 - Trade-off → Larger but independent
 - Optimized → Tree-shaking, minification
@@ -221,6 +230,7 @@ npm run build:webcomponent
 ### Module Federation
 
 Deploy to CDN:
+
 ```
 Host:     https://app.example.com
 Shell:    https://cdn.example.com/shell/
@@ -229,6 +239,7 @@ Contact:  https://cdn.example.com/contact/
 ```
 
 Update host config:
+
 ```typescript
 remotes: {
   shellApp: 'https://cdn.example.com/shell/assets/remoteEntry.js',
@@ -240,6 +251,7 @@ remotes: {
 ### Web Components
 
 Deploy widgets:
+
 ```
 https://widgets.example.com/products-widget.js
 https://widgets.example.com/contact-widget.js
@@ -247,20 +259,26 @@ https://widgets.example.com/shell-widget.js
 ```
 
 Use anywhere:
+
 ```html
 <products-widget theme="light"></products-widget>
-<script type="module" src="https://widgets.example.com/products-widget.js"></script>
+<script
+  type="module"
+  src="https://widgets.example.com/products-widget.js"
+></script>
 ```
 
 ## Security
 
 ### Module Federation
+
 - Configure CORS properly
 - Set appropriate CSP headers
 - Only load from trusted remotes
 - Verify remote integrity
 
 ### Web Components
+
 - Validate all inputs
 - Sanitize event data
 - Use Shadow DOM for style encapsulation

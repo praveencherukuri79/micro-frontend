@@ -7,51 +7,112 @@ Get the Module Federation app running in 5 minutes.
 - Node.js 18+ installed
 - Git (for cloning the repository)
 
-## Option 1: Quick Start (Fastest) ⚡
+---
+
+## Module Federation Workflows
+
+### Option 1: Quick Start (Fastest)
 
 If remotes are already built:
 
 ```powershell
-.\start.ps1
+.\scripts\mf-start-quick.ps1
 ```
 
-Opens 4 windows, starts all servers instantly.
+Opens separate windows, starts all servers instantly.
 
-## Option 2: With Auto-Rebuild (Recommended) 🔥
+### Option 2: Watch Mode (Auto-Rebuild) - RECOMMENDED
 
-For active development:
+For active development with auto-rebuild:
 
 ```powershell
-.\start-watch.ps1
+.\scripts\mf-start-watch.ps1
 ```
 
 **Features:**
-- ✅ Builds all remotes in PARALLEL (3x faster!)
-- ✅ Auto-rebuilds on file changes
-- ✅ Opens 4 PowerShell windows
-- ✅ Edit → Auto rebuild → Refresh browser
 
-## Option 3: Build + Start
+- Builds all remotes in PARALLEL
+- Auto-rebuilds on file changes
+- Production builds (required for Module Federation)
+- Edit → Auto rebuild → Refresh browser
 
-For first-time setup or testing:
+### Option 3: Production Preview
+
+For first-time setup or testing production builds:
 
 ```powershell
-.\start-preview.ps1
+.\scripts\mf-start-preview.ps1
 ```
 
 **Features:**
-- ✅ Builds all remotes in PARALLEL (3x faster!)
-- ✅ Auto-installs missing dependencies
-- ❌ No auto-rebuild (manual rebuild needed after changes)
 
-## 📋 Script Comparison
+- Builds all remotes in PARALLEL
+- Serves production builds
+- No auto-rebuild (manual rebuild needed)
 
-| Script | Speed | Parallel Build? | Auto-rebuild? | Use When |
-|--------|-------|----------------|---------------|----------|
-| `install-all.ps1` | ⚡ Fast | ✅ | N/A | First time setup |
-| `start.ps1` | ⚡ Instant | N/A | ❌ | Restarting servers |
-| `start-watch.ps1` | 🚀 ~1 min | ✅ | ✅ | Active development |
-| `start-preview.ps1` | 🚀 ~1 min | ✅ | ❌ | Testing/First run |
+### Module Federation Scripts
+
+| Script                 | Speed    | Parallel Build? | Auto-rebuild? | Use When           |
+| ---------------------- | -------- | --------------- | ------------- | ------------------ |
+| `mf-start-quick.ps1`   | Instant  | N/A             | ❌            | Restarting servers |
+| `mf-start-watch.ps1`   | ~1-2 min | ✅              | ✅ (rebuild)  | Active development |
+| `mf-start-preview.ps1` | ~1-2 min | ✅              | ❌            | Testing/First run  |
+
+---
+
+## Web Component Workflows
+
+### Option 1: Full Workflow
+
+Build, copy, and start everything:
+
+```powershell
+.\scripts\wc-start.ps1
+```
+
+Open **http://localhost:5010**
+
+**Features:**
+
+- Builds all web components in PARALLEL
+- Copies to central widgets directory
+- Starts the web component host
+- All in one command
+
+### Option 2: Quick Start (Fastest)
+
+If widgets are already built:
+
+```powershell
+.\scripts\wc-start-quick.ps1
+```
+
+Open **http://localhost:5010**
+
+**Features:**
+
+- Just starts the host (no build)
+- Instant startup
+- Use when widgets are already built
+
+### Web Component Scripts
+
+| Script                | Speed   | Build? | Use When                   |
+| --------------------- | ------- | ------ | -------------------------- |
+| `wc-start.ps1`        | ~1 min  | ✅     | First time / after changes |
+| `wc-start-quick.ps1`  | Instant | ❌     | Restarting host            |
+| `wc-build-all.ps1`    | ~40 sec | ✅     | Only rebuild widgets       |
+| `wc-copy-widgets.ps1` | ~1 sec  | ❌     | Only copy widgets          |
+
+---
+
+## Utility Scripts
+
+| Script                  | Speed | Use When         |
+| ----------------------- | ----- | ---------------- |
+| `utils-install-all.ps1` | Fast  | First time setup |
+| `utils-get-remotes.ps1` | N/A   | List all remotes |
+| `utils-kill-ports.ps1`  | N/A   | Free up ports    |
 
 ---
 
@@ -62,10 +123,10 @@ For first-time setup or testing:
 **Option A: Parallel Install (Fast - Recommended)**
 
 ```powershell
-.\install-all.ps1
+.\scripts\utils-install-all.ps1
 ```
 
-Installs all dependencies in parallel (~3x faster than sequential).
+Installs all dependencies in parallel (saves time).
 
 **Option B: Manual Install**
 
@@ -243,12 +304,14 @@ npm run build
 ## 🎨 What You'll See
 
 ### Home Page
+
 - Hero section with call-to-action
 - Feature cards
 - Navigation menu
 - Theme toggle (light/dark)
 
 ### Products Page (Remote Module)
+
 - Product grid with images
 - Search functionality
 - Category filters
@@ -256,12 +319,14 @@ npm run build
 - Product ratings
 
 ### Contact Page (Remote Module)
+
 - Contact form with validation
 - Company contact info
 - Map placeholder
 - Success notifications
 
 ### Header & Footer (Remote Module)
+
 - Navigation links
 - Theme switcher
 - Shopping cart count
@@ -301,7 +366,7 @@ npm run build
 taskkill /F /IM node.exe
 
 # Restart with the script
-.\start-watch.ps1
+.\scripts\mf-start-dev.ps1
 ```
 
 ---

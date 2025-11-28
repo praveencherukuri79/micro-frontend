@@ -1,19 +1,19 @@
-import ReactDOM from 'react-dom/client';
+import ReactDOM from "react-dom/client";
 
-export type ThemeMode = 'light' | 'dark';
+export type ThemeMode = "light" | "dark";
 
 /**
  * Validate theme mode
  */
 export const isValidThemeMode = (mode: string): mode is ThemeMode => {
-  return mode === 'light' || mode === 'dark';
+  return mode === "light" || mode === "dark";
 };
 
 /**
  * Get theme mode with fallback
  */
 export const getThemeMode = (mode: string | null | undefined): ThemeMode => {
-  return mode && isValidThemeMode(mode) ? mode : 'light';
+  return mode && isValidThemeMode(mode) ? mode : "light";
 };
 
 /**
@@ -32,7 +32,7 @@ export const unmountReactRoot = (root: ReactDOM.Root | null): void => {
     try {
       root.unmount();
     } catch (error) {
-      console.error('Error unmounting React root:', error);
+      console.error("Error unmounting React root:", error);
     }
   }
 };

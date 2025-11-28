@@ -14,6 +14,7 @@
 - Let the user review and approve
 
 **Example workflow:**
+
 ```bash
 # ✅ CORRECT
 git add .
@@ -31,12 +32,14 @@ git add . && git commit -m "..." && git push  # Too automated!
 **❌ ALWAYS check for errors 2-3 times before proposing changes**
 
 **Required checks:**
+
 1. Run `read_lints` on all modified files
 2. Check TypeScript compilation
 3. Verify imports are correct
 4. Test logic thoroughly
 
 **Example:**
+
 ```typescript
 // Before proposing ANY code changes:
 1. Read the file
@@ -54,12 +57,14 @@ git add . && git commit -m "..." && git push  # Too automated!
 #### Avoid Over-Engineering
 
 **❌ DON'T:**
+
 - Create complex base classes for simple tasks
 - Use abstract classes when functions suffice
 - Add unnecessary layers of abstraction
 - Mix JSX in `.ts` files (use `.tsx` for JSX)
 
 **✅ DO:**
+
 - Keep it simple
 - Use utility functions over complex classes
 - Prefer composition over inheritance
@@ -68,12 +73,14 @@ git add . && git commit -m "..." && git push  # Too automated!
 #### Code Duplication
 
 **For micro-frontends: Duplication is acceptable when:**
+
 - Code is small (< 100 lines)
 - Code is stable (doesn't change often)
 - It maintains independence between remotes
 - It avoids build-time coupling
 
 **Example:**
+
 ```typescript
 // ✅ ACCEPTABLE: Small utility duplicated across 3 remotes
 // Better than creating complex shared dependency
@@ -87,12 +94,14 @@ git add . && git commit -m "..." && git push  # Too automated!
 #### Micro-Frontend Principles
 
 **✅ Preferred:**
+
 - Independent remotes (each can deploy separately)
 - Runtime sharing (Module Federation)
 - Minimal build-time dependencies
 - Team autonomy
 
 **❌ Avoid:**
+
 - Shared code folders without proper package setup
 - Build-time coupling between remotes
 - Monorepo complexity (unless explicitly requested)
@@ -100,12 +109,14 @@ git add . && git commit -m "..." && git push  # Too automated!
 #### File Organization
 
 **Utils Structure:**
+
 ```
 host/src/utils/          # Host-specific utilities
 remotes/*/src/utils/     # Remote-specific utilities
 ```
 
 **NOT:**
+
 ```
 shared/utils/            # ❌ Causes dependency issues
 ```
@@ -113,12 +124,14 @@ shared/utils/            # ❌ Causes dependency issues
 ### 5. Documentation Standards
 
 **Keep documentation:**
+
 - Concise (no fluff)
 - Scannable (tables, bullets, headings)
 - Practical (real examples)
 - Up-to-date (remove outdated info immediately)
 
 **Documentation files:**
+
 - `README.md` - Main project overview
 - `QUICKSTART.md` - How to run (simple)
 - `ARCHITECTURE.md` - System design (focused)
@@ -126,12 +139,14 @@ shared/utils/            # ❌ Causes dependency issues
 - `AI_GUIDELINES.md` - This file
 
 **❌ NEVER create:**
+
 - Redundant READMEs in every folder
 - Summary files that duplicate content
 - Overly verbose explanations
 - Unnecessary documentation files (SUMMARY.md, FINAL_FIX.md, etc.)
 
 **✅ ONLY edit existing docs when needed:**
+
 - Update `README.md` for project changes
 - Update `QUICKSTART.md` for new run commands
 - Keep changes minimal - only what's required
@@ -139,6 +154,7 @@ shared/utils/            # ❌ Causes dependency issues
 ### 6. Communication Style
 
 **When responding:**
+
 - ✅ Be direct and concise
 - ✅ Admit mistakes immediately
 - ✅ Always verify before claiming something works
@@ -153,22 +169,24 @@ shared/utils/            # ❌ Causes dependency issues
 ### TypeScript/React
 
 **Imports:**
+
 ```typescript
 // ✅ Consistent double quotes (project preference)
 import { something } from "module";
 
 // ❌ Don't mix quotes
-import { something } from 'module';
+import { something } from "module";
 ```
 
 **File Extensions:**
+
 ```typescript
 // ✅ CORRECT
-webComponent.ts     // Pure TypeScript, no JSX
-webcomponent.tsx    // Contains JSX
+webComponent.ts; // Pure TypeScript, no JSX
+webcomponent.tsx; // Contains JSX
 
 // ❌ WRONG
-webComponent.ts     // Contains JSX - will cause errors!
+webComponent.ts; // Contains JSX - will cause errors!
 ```
 
 ### HTML & CSS Separation (Angular/Vue Remotes)
@@ -176,6 +194,7 @@ webComponent.ts     // Contains JSX - will cause errors!
 **❌ CRITICAL RULE: For Angular and Vue remotes, ALWAYS keep HTML and CSS in separate files from TypeScript**
 
 **✅ CORRECT Structure:**
+
 ```
 remotes/angular/src/
 ├── components/
@@ -196,11 +215,13 @@ remotes/vue/src/
 ```
 
 **File Naming Convention:**
+
 - `[component-name]-remote.ts` - Module Federation entry point (e.g., `analytics-remote.ts`, `settings-remote.ts`)
 - `[component-name].component.ts/html/css` - Angular components
 - `[ComponentName].vue` - Vue components (PascalCase for SFC)
 
 **❌ WRONG - DON'T DO THIS:**
+
 ```typescript
 // ❌ NEVER inline HTML in TypeScript files
 export default function mount(container: HTMLElement) {
@@ -218,6 +239,7 @@ const styles = `
 ```
 
 **✅ CORRECT - Proper Angular Component:**
+
 ```typescript
 // analytics.component.ts
 @Component({
@@ -231,6 +253,7 @@ export class AnalyticsComponent {
 ```
 
 **✅ CORRECT - Proper Vue Component:**
+
 ```vue
 <!-- SettingsPage.vue -->
 <template>
@@ -245,8 +268,9 @@ export class AnalyticsComponent {
 ```
 
 **Why this matters:**
+
 - **Framework standards** - Follows Angular/Vue best practices
-- **Separation of concerns** - Logic, presentation, and style are separate  
+- **Separation of concerns** - Logic, presentation, and style are separate
 - **Maintainability** - Easy to find and edit HTML/CSS
 - **Readability** - TypeScript files focus on logic only
 - **IDE support** - Proper syntax highlighting and autocomplete
@@ -255,6 +279,7 @@ export class AnalyticsComponent {
 ### State Management
 
 **Zustand stores should have:**
+
 - Persistence (for user preferences)
 - Logging (for debugging)
 - Validation (max values, bounds)
@@ -263,12 +288,14 @@ export class AnalyticsComponent {
 ### Error Handling
 
 **Web components must:**
+
 - Handle errors gracefully
 - Show user-friendly error UI
 - Log errors to console
 - Clean up resources on unmount
 
 **Example:**
+
 ```typescript
 disconnectedCallback() {
   try {
@@ -283,6 +310,7 @@ disconnectedCallback() {
 ## 🔄 Workflow Checklist
 
 Before ANY code changes:
+
 - [ ] Understand the request fully
 - [ ] Check existing code
 - [ ] Plan the changes
@@ -297,18 +325,22 @@ Before ANY code changes:
 ### From This Session
 
 1. **Don't create `shared/` folders** without proper npm package setup
+
    - Causes linting errors
    - Breaks independence
 
 2. **Don't overengineer utilities**
+
    - Base classes aren't always the answer
    - Simple functions > complex inheritance
 
 3. **Always check for errors multiple times**
+
    - Run read_lints before AND after changes
    - Don't assume code works
 
 4. **Wait for permission to commit**
+
    - User wants control over git operations
    - Show changes first, commit second
 
@@ -329,15 +361,17 @@ export const getThemeMode = (mode: string): ThemeMode => {
 // State persistence
 export const useThemeStore = create<ThemeState>()(
   persist(
-    (set) => ({ /* state */ }),
-    { name: 'theme-storage' }
+    (set) => ({
+      /* state */
+    }),
+    { name: "theme-storage" }
   )
 );
 
 // Error boundaries with fallbacks
 <ErrorBoundary fallback={<CustomError />}>
   <App />
-</ErrorBoundary>
+</ErrorBoundary>;
 ```
 
 ### Bad Patterns ❌
@@ -350,15 +384,16 @@ export abstract class WebComponentBase extends HTMLElement {
 
 // ❌ JSX in .ts file
 // webComponent.ts
-const element = <div>Hello</div>;  // Syntax error!
+const element = <div>Hello</div>; // Syntax error!
 
 // ❌ Magic strings
-mode === 'light'  // Use constants: THEME_MODE.LIGHT
+mode === "light"; // Use constants: THEME_MODE.LIGHT
 ```
 
 ## 📝 Summary
 
 **Core Principles:**
+
 1. ✅ Check errors 2-3 times
 2. ✅ Wait for permission to commit
 3. ✅ Keep it simple
@@ -366,6 +401,7 @@ mode === 'light'  // Use constants: THEME_MODE.LIGHT
 5. ✅ Be direct and honest
 
 **Remember:**
+
 > "The user knows best. When in doubt, ask. Never assume."
 
 ---
@@ -373,4 +409,3 @@ mode === 'light'  // Use constants: THEME_MODE.LIGHT
 **Last Updated:** 2025-11-27  
 **Version:** 1.1  
 **Status:** Active - MUST be followed by all AI assistants
-

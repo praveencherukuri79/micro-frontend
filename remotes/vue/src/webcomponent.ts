@@ -1,23 +1,26 @@
-import { createApp, App as VueApp } from 'vue';
-import { createPinia } from 'pinia';
-import App from './components/app/App.vue';
-import { useThemeStore } from './stores/theme';
+import { createPinia } from "pinia";
+import { createApp, App as VueApp } from "vue";
+import App from "./components/app/App.vue";
+import { useThemeStore } from "./stores/theme";
+import { createErrorElement } from "./utils/errorFallback";
+import { applyThemeVariables, createWebComponentTheme } from "./utils/theme";
 import {
-  ThemeMode,
+  emitCustomEvent,
   getThemeMode,
   registerWebComponent,
-  emitCustomEvent,
-} from './utils/webComponent';
-import { createWebComponentTheme, applyThemeVariables } from './utils/theme';
-import './style.css';
+  ThemeMode,
+} from "./utils/webComponent";
+
+// Import component CSS (not global style.css)
+import appCSS from "./components/app/App.css?raw";
 
 class VueWebComponent extends HTMLElement {
   private app: VueApp | null = null;
-  private themeMode: ThemeMode = 'light';
+  private themeMode: ThemeMode = "light";
   private mountPoint: HTMLDivElement | null = null;
 
   static get observedAttributes(): string[] {
-    return ['theme'];
+    return ["theme"];
   }
 
   connectedCallback(): void {
@@ -33,7 +36,7 @@ class VueWebComponent extends HTMLElement {
     oldValue: string,
     newValue: string
   ): void {
-    if (name === 'theme' && oldValue !== newValue) {
+    if (name === "theme" && oldValue !== newValue) {
       this.themeMode = getThemeMode(newValue);
       if (this.app) {
         this.updateTheme();
@@ -51,10 +54,18 @@ class VueWebComponent extends HTMLElement {
       }
 
       // Clear existing content
-      this.innerHTML = '';
+      this.innerHTML = "";
+
+      // Inject CSS into document head (only once)
+      if (!document.getElementById("vue-widget-styles")) {
+        const style = document.createElement("style");
+        style.id = "vue-widget-styles";
+        style.textContent = appCSS;
+        document.head.appendChild(style);
+      }
 
       // Create mount point
-      this.mountPoint = document.createElement('div');
+      this.mountPoint = document.createElement("div");
       this.appendChild(this.mountPoint);
 
       // Apply theme
@@ -74,9 +85,9 @@ class VueWebComponent extends HTMLElement {
       themeStore.setTheme(this.themeMode);
 
       // Emit ready event
-      emitCustomEvent(this, 'vue-ready', { theme: this.themeMode });
+      emitCustomEvent(this, "vue-ready", { theme: this.themeMode });
     } catch (error) {
-      console.error('Error mounting Vue web component:', error);
+      console.error("Error mounting Vue web component:", error);
       this.showError(error);
     }
   }
@@ -95,9 +106,9 @@ class VueWebComponent extends HTMLElement {
         }
       }
 
-      emitCustomEvent(this, 'theme-changed', { theme: this.themeMode });
+      emitCustomEvent(this, "theme-changed", { theme: this.themeMode });
     } catch (error) {
-      console.error('Error updating theme:', error);
+      console.error("Error updating theme:", error);
     }
   }
 
@@ -107,36 +118,27 @@ class VueWebComponent extends HTMLElement {
         this.app.unmount();
         this.app = null;
       }
-      this.innerHTML = '';
+      this.innerHTML = "";
       this.mountPoint = null;
     } catch (error) {
-      console.error('Error unmounting Vue web component:', error);
+      console.error("Error unmounting Vue web component:", error);
     }
   }
 
   private showError(error: unknown): void {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.style.padding = '2rem';
-    errorDiv.style.backgroundColor = '#ffebee';
-    errorDiv.style.border = '1px solid #f44336';
-    errorDiv.style.borderRadius = '8px';
-    errorDiv.style.color = '#c62828';
-    
-    const title = document.createElement('h3');
-    title.textContent = 'Error Loading Vue Remote';
-    title.style.margin = '0 0 0.5rem 0';
-    
-    const message = document.createElement('p');
-    message.textContent = errorMessage;
-    message.style.margin = '0';
-    
-    errorDiv.appendChild(title);
-    errorDiv.appendChild(message);
-    this.appendChild(errorDiv);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const details = error instanceof Error ? error.stack : undefined;
+
+    const errorEl = createErrorElement(
+      "Error Loading Vue Remote",
+      errorMessage,
+      details
+    );
+
+    this.innerHTML = "";
+    this.appendChild(errorEl);
   }
 }
 
-registerWebComponent('vue-widget', VueWebComponent);
-
+registerWebComponent("vue-widget", VueWebComponent);

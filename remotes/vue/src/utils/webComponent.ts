@@ -1,10 +1,10 @@
-export type ThemeMode = 'light' | 'dark';
+export type ThemeMode = "light" | "dark";
 
 /**
  * Safely parse theme attribute value
  */
 export function getThemeMode(value: string | null): ThemeMode {
-  return value === 'dark' ? 'dark' : 'light';
+  return value === "dark" ? "dark" : "light";
 }
 
 /**
@@ -43,4 +43,3 @@ export function emitCustomEvent<T = any>(
     console.error(`Error emitting event "${eventName}":`, error);
   }
 }
-

@@ -1,5 +1,12 @@
-import { GitHub, LinkedIn, Twitter } from '@mui/icons-material';
-import { Box, Container, Grid, IconButton, Link, Typography } from '@mui/material';
+import { GitHub, LinkedIn, Twitter } from "@mui/icons-material";
+import {
+  Box,
+  Container,
+  Grid,
+  IconButton,
+  Link,
+  Typography,
+} from "@mui/material";
 
 export const Footer = () => {
   return (
@@ -8,9 +15,11 @@ export const Footer = () => {
       sx={{
         py: 6,
         px: 2,
-        mt: 'auto',
+        mt: "auto",
         backgroundColor: (theme) =>
-          theme.palette.mode === 'light' ? theme.palette.grey[200] : theme.palette.grey[900],
+          theme.palette.mode === "light"
+            ? theme.palette.grey[200]
+            : theme.palette.grey[900],
       }}
     >
       <Container maxWidth="lg">
@@ -20,15 +29,16 @@ export const Footer = () => {
               ModuleFed Store
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              A modern e-commerce platform built with Module Federation, React, and MUI.
+              A modern e-commerce platform built with Module Federation, React,
+              and MUI.
             </Typography>
           </Grid>
-          
+
           <Grid item xs={12} sm={4}>
             <Typography variant="h6" gutterBottom fontWeight={600}>
               Quick Links
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
               <Link href="/" color="text.secondary" underline="hover">
                 Home
               </Link>
@@ -40,12 +50,12 @@ export const Footer = () => {
               </Link>
             </Box>
           </Grid>
-          
+
           <Grid item xs={12} sm={4}>
             <Typography variant="h6" gutterBottom fontWeight={600}>
               Connect With Us
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: "flex", gap: 1 }}>
               <IconButton color="primary" aria-label="GitHub">
                 <GitHub />
               </IconButton>
@@ -58,10 +68,11 @@ export const Footer = () => {
             </Box>
           </Grid>
         </Grid>
-        
-        <Box sx={{ mt: 4, pt: 3, borderTop: 1, borderColor: 'divider' }}>
+
+        <Box sx={{ mt: 4, pt: 3, borderTop: 1, borderColor: "divider" }}>
           <Typography variant="body2" color="text.secondary" align="center">
-            © {new Date().getFullYear()} ModuleFed Store. Built with Module Federation & React.
+            © {new Date().getFullYear()} ModuleFed Store. Built with Module
+            Federation & React.
           </Typography>
         </Box>
       </Container>
@@ -70,4 +81,3 @@ export const Footer = () => {
 };
 
 export default Footer;
-

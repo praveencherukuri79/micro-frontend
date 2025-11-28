@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable } from "@angular/core";
+import { BehaviorSubject, Observable } from "rxjs";
 
-export type ThemeMode = 'light' | 'dark';
+export type ThemeMode = "light" | "dark";
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: "root",
 })
 export class ThemeService {
   private themeSubject: BehaviorSubject<ThemeMode>;
@@ -27,39 +27,38 @@ export class ThemeService {
       this.storeTheme(theme);
       this.applyThemeToDocument(theme);
     } catch (error) {
-      console.error('Error setting theme:', error);
+      console.error("Error setting theme:", error);
     }
   }
 
   toggleTheme(): void {
-    const newTheme = this.getCurrentTheme() === 'light' ? 'dark' : 'light';
+    const newTheme = this.getCurrentTheme() === "light" ? "dark" : "light";
     this.setTheme(newTheme);
   }
 
   private getStoredTheme(): ThemeMode {
     try {
-      const stored = localStorage.getItem('angular-remote-theme');
-      return (stored === 'dark' ? 'dark' : 'light') as ThemeMode;
+      const stored = localStorage.getItem("angular-remote-theme");
+      return (stored === "dark" ? "dark" : "light") as ThemeMode;
     } catch (error) {
-      console.error('Error reading stored theme:', error);
-      return 'light';
+      console.error("Error reading stored theme:", error);
+      return "light";
     }
   }
 
   private storeTheme(theme: ThemeMode): void {
     try {
-      localStorage.setItem('angular-remote-theme', theme);
+      localStorage.setItem("angular-remote-theme", theme);
     } catch (error) {
-      console.error('Error storing theme:', error);
+      console.error("Error storing theme:", error);
     }
   }
 
   private applyThemeToDocument(theme: ThemeMode): void {
     try {
-      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute("data-theme", theme);
     } catch (error) {
-      console.error('Error applying theme to document:', error);
+      console.error("Error applying theme to document:", error);
     }
   }
 }
-
