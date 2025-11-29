@@ -1,17 +1,22 @@
 import { ThemeMode } from './services/theme.service';
 
+export interface MountOptions {
+  theme?: ThemeMode;
+  apiBasePath?: string;
+}
+
 /**
  * Angular Remote - Module Federation entry point (Webpack)
  * Uses async import to avoid eager consumption of shared Angular modules
  */
 export default async function mount(
   container: HTMLElement,
-  theme: ThemeMode = 'light'
+  options: MountOptions = {}
 ): Promise<() => void> {
   try {
     // Dynamic import creates async boundary to prevent eager consumption
     const { bootstrapAngularComponent } = await import('./bootstrap-mf');
-    return await bootstrapAngularComponent(container, theme);
+    return await bootstrapAngularComponent(container, options);
   } catch (error) {
     console.error('Error loading Angular webpack remote:', error);
 

@@ -1,71 +1,124 @@
 <#
 .SYNOPSIS
-    Quick start - instantly start all applications (Module Federation)
+    Quick start for Module Federation (no build)
 
 .DESCRIPTION
     Starts host and all remotes in preview mode WITHOUT building
-    Use this when dependencies are installed and remotes are already built
-    Fastest way to start everything
-    Ports are automatically cleaned up before starting
+    Use this when:
+    - Dependencies are already installed
+    - Remotes are already built (dist folders exist)
+    
+    This is the FASTEST way to restart all Module Federation applications
+    Automatically cleans up ports before starting
 
 .PREREQUISITES
-    - Dependencies installed (run utils-install-all.ps1)
-    - Remotes already built (run mf-build-all.ps1)
+    1. Dependencies installed: .\scripts\utils-install-all.ps1
+    2. Remotes built: .\scripts\mf-build-all.ps1
 
 .EXAMPLE
     .\scripts\mf-start-quick.ps1
 #>
 
-# Clean up ports first
+# Clean up ports before starting
 & "$PSScriptRoot\utils-kill-ports.ps1"
 
-Write-Host ""
-Write-Host "Quick start - launching all applications..." -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "Module Federation: Quick Start" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Get all remotes
+# Get all remotes from package.json metadata
+Write-Host "Discovering remotes..." -ForegroundColor Yellow
 $remotes = & "$PSScriptRoot\utils-get-remotes.ps1"
 
-# Check if remotes are built
-$unbuiltRemotes = @()
+# Validate remotes were found
+$remoteCount = ($remotes | Measure-Object).Count
+if (-not $remotes -or $remoteCount -eq 0) {
+    Write-Host ""
+    Write-Host "ERROR: No remotes found" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
+Write-Host "Validating prerequisites..." -ForegroundColor Yellow
+Write-Host ""
+
+# Validation: Check if all remotes are built (have dist folders)
+$unbuiltRemotes = @()  # Array to collect names of unbuilt remotes
+
 foreach ($remote in $remotes) {
+    Write-Host "Checking: $($remote.Name)" -ForegroundColor White
+    
+    # Path to dist folder (derived from remote path)
     $distPath = Join-Path $remote.Path "dist"
+    
     if (-not (Test-Path $distPath)) {
+        Write-Host "  FAIL: dist folder not found" -ForegroundColor Red
         $unbuiltRemotes += $remote.Name
+    }
+    else {
+        Write-Host "  OK: dist folder exists" -ForegroundColor Green
     }
 }
 
-if ($unbuiltRemotes.Count -gt 0) {
+# If any remotes are not built, stop and show error
+$unbuiltCount = ($unbuiltRemotes | Measure-Object).Count
+if ($unbuiltCount -gt 0) {
+    Write-Host ""
     Write-Host "ERROR: The following remotes are not built:" -ForegroundColor Red
-    $unbuiltRemotes | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
+    foreach ($remoteName in $unbuiltRemotes) {
+        Write-Host "  - $remoteName" -ForegroundColor Red
+    }
     Write-Host ""
     Write-Host "Run the following first:" -ForegroundColor Yellow
     Write-Host "  .\scripts\mf-build-all.ps1" -ForegroundColor White
     Write-Host ""
-    Write-Host "Or use preview mode (builds first):" -ForegroundColor Yellow
+    Write-Host "Or use preview mode (builds automatically):" -ForegroundColor Yellow
     Write-Host "  .\scripts\mf-start-preview.ps1" -ForegroundColor White
     Write-Host ""
     exit 1
 }
 
-# Start all remotes in preview mode (no build)
+Write-Host ""
+Write-Host "All prerequisites validated!" -ForegroundColor Green
+Write-Host ""
+
+# Start all remotes in preview mode (serves built dist folder)
+Write-Host "Starting $remoteCount remote(s)..." -ForegroundColor Cyan
+Write-Host ""
+
 foreach ($remote in $remotes) {
     Write-Host "Starting: $($remote.Name) on port $($remote.Port)" -ForegroundColor Green
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$($remote.Path)'; npm run preview" -WindowStyle Normal
+    
+    Start-Process powershell `
+        -ArgumentList "-NoExit", "-Command", "cd '$($remote.Path)'; npm run preview" `
+        -WindowStyle Normal
+    
+    # Small delay between starts to prevent race conditions
     Start-Sleep -Milliseconds 500
 }
 
+# Start host application
+$hostPath = Join-Path $PSScriptRoot "..\host"
+
 Write-Host ""
 Write-Host "Starting: host on port 5000" -ForegroundColor Green
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$(Join-Path $PSScriptRoot '..\host')'; npm run dev" -WindowStyle Normal
 
+Start-Process powershell `
+    -ArgumentList "-NoExit", "-Command", "cd '$hostPath'; npm run dev" `
+    -WindowStyle Normal
+
+# Display summary
 Write-Host ""
-Write-Host "All applications started!" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "All Applications Started" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Remotes:" -ForegroundColor Yellow
+Write-Host "Remotes (preview mode):" -ForegroundColor Yellow
 foreach ($remote in $remotes) {
-    Write-Host "  http://localhost:$($remote.Port) - $($remote.Name)"
+    Write-Host "  http://localhost:$($remote.Port) - $($remote.Name)" -ForegroundColor White
 }
 Write-Host ""
-Write-Host "Host: http://localhost:5000" -ForegroundColor Yellow
-
+Write-Host "Host (dev mode):" -ForegroundColor Yellow
+Write-Host "  http://localhost:5000" -ForegroundColor White
+Write-Host ""

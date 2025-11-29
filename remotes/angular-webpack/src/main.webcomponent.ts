@@ -2,6 +2,8 @@ import { createCustomElement } from '@angular/elements';
 import { createApplication } from '@angular/platform-browser';
 import 'zone.js';
 import { AppComponent } from './components/app/app.component';
+import { ApiService } from './services/api.service';
+import { createErrorElement } from './utils/errorFallback';
 
 /**
  * Angular Web Component Entry Point (Webpack)
@@ -16,12 +18,20 @@ class AngularWebpackElement extends HTMLElement {
     if (this._initialized) return;
     this._initialized = true;
 
+    const apiBasePath =
+      this.getAttribute('api-base-path') || window.location.origin;
+
     // Bootstrap Angular when the element is connected
     createApplication({
       providers: [],
     })
       .then((appRef) => {
         const injector = appRef.injector;
+
+        // Set API base path
+        const apiService = injector.get(ApiService);
+        apiService.setBasePath(apiBasePath);
+
         const WebComponentClass = createCustomElement(AppComponent, {
           injector,
         });
@@ -45,15 +55,21 @@ class AngularWebpackElement extends HTMLElement {
         this.appendChild(angularElement);
 
         console.log('Angular Webpack widget bootstrapped');
+        console.log(`API base path: ${apiBasePath}`);
       })
       .catch((err) => {
         console.error('Angular Webpack web component bootstrap error:', err);
-        this.innerHTML = `<div style="padding:2rem;background:#ffebee;border:1px solid #f44336;border-radius:8px;color:#c62828;">
-          <h3 style="margin:0 0 .5rem 0;">Error Loading Angular Remote</h3>
-          <p style="margin:0;">${
-            err instanceof Error ? err.message : 'Unknown error'
-          }</p>
-        </div>`;
+        const errorMessage =
+          err instanceof Error ? err.message : 'Unknown error';
+        const details = err instanceof Error ? err.stack : undefined;
+        this.innerHTML = '';
+        this.appendChild(
+          createErrorElement(
+            'Error Loading Angular Remote',
+            errorMessage,
+            details
+          )
+        );
       });
   }
 }

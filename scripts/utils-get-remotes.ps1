@@ -1,91 +1,102 @@
 <#
 .SYNOPSIS
-    Discovers all micro-frontend remotes by reading package.json metadata
+    Discovers all micro-frontend remotes from package.json metadata
 
 .DESCRIPTION
-    Scans the remotes/ directory and extracts configuration from package.json
-    Returns an array of remote objects with type, port, and other metadata
-
+    Scans remotes/ directory and reads microfrontend configuration from each package.json
+    Returns array of remote objects with validated metadata
+    
 .OUTPUTS
-    Array of PSCustomObject with remote information
+    Array of PSCustomObject with properties: Name, Path, Type, Port, Exposes, WebComponent, PackageName
 
 .EXAMPLE
     $remotes = & ".\scripts\utils-get-remotes.ps1"
-    $remotes | Format-Table Name, Type, Port
+    $remotes | ForEach-Object { Write-Host "$($_.Name) on port $($_.Port)" }
 #>
 
+# Base path for remotes directory
 $remotesPath = Join-Path $PSScriptRoot "..\remotes"
+
+# Check if remotes directory exists
+if (-not (Test-Path $remotesPath)) {
+    Write-Host "ERROR: Remotes directory not found: $remotesPath" -ForegroundColor Red
+    return @()
+}
+
+Write-Host "Scanning remotes directory: $remotesPath" -ForegroundColor DarkGray
+
+# Get all subdirectories in remotes/
+$remoteDirs = Get-ChildItem -Path $remotesPath -Directory -ErrorAction SilentlyContinue
+
+if (-not $remoteDirs) {
+    Write-Host "WARNING: No remote directories found" -ForegroundColor Yellow
+    return @()
+}
+
+$remoteDirCount = ($remoteDirs | Measure-Object).Count
+Write-Host "Found $remoteDirCount potential remote directories" -ForegroundColor DarkGray
+
+# Array to store discovered remotes
 $remotes = @()
 
-# Get all remote directories
-$remoteDirs = Get-ChildItem -Path $remotesPath -Directory
-
+# Scan each directory for package.json with microfrontend metadata
 foreach ($dir in $remoteDirs) {
     $packageJsonPath = Join-Path $dir.FullName "package.json"
     
-    if (Test-Path $packageJsonPath) {
-        try {
-            $packageJson = Get-Content $packageJsonPath -Raw | ConvertFrom-Json
+    Write-Host "  Checking: $($dir.Name)" -ForegroundColor DarkGray
+    
+    if (-not (Test-Path $packageJsonPath)) {
+        Write-Host "    SKIP: No package.json found" -ForegroundColor DarkYellow
+        continue
+    }
+    
+    try {
+        # Read and parse package.json
+        $packageJsonContent = Get-Content $packageJsonPath -Raw -ErrorAction Stop
+        $packageJson = $packageJsonContent | ConvertFrom-Json -ErrorAction Stop
+        
+        # Check if microfrontend metadata exists
+        if ($packageJson.PSObject.Properties.Name -contains "microfrontend") {
+            # Get microfrontend metadata object
+            $mf = $packageJson.microfrontend
             
-            # Check if microfrontend metadata exists
-            if ($packageJson.PSObject.Properties.Name -contains "microfrontend") {
-                $mf = $packageJson.microfrontend
-                
-                $remote = [PSCustomObject]@{
-                    Name = $dir.Name
-                    Path = $dir.FullName
-                    Type = $mf.type
-                    Port = $mf.port
-                    Exposes = $mf.exposes
-                    WebComponent = $mf.webcomponent
-                    PackageName = $packageJson.name
-                }
-                
-                $remotes += $remote
+            # Validate required fields
+            if (-not $mf.type) {
+                Write-Host "    SKIP: microfrontend.type is missing" -ForegroundColor DarkYellow
+                continue
             }
-            else {
-                # Fallback: Auto-detect type from dependencies
-                $type = "unknown"
-                if ($packageJson.dependencies.PSObject.Properties.Name -contains "react") {
-                    $type = "react-vite"
-                }
-                elseif ($packageJson.dependencies.PSObject.Properties.Name -contains "@angular/core") {
-                    if ($packageJson.devDependencies.PSObject.Properties.Name -contains "@angular-architects/module-federation") {
-                        $type = "angular-webpack"
-                    }
-                    else {
-                        $type = "angular-vite"
-                    }
-                }
-                elseif ($packageJson.dependencies.PSObject.Properties.Name -contains "vue") {
-                    $type = "vue-vite"
-                }
-                
-                # Try to get port from scripts
-                $port = 5000
-                if ($packageJson.scripts.dev -match '--port (\d+)') {
-                    $port = [int]$matches[1]
-                }
-                
-                $remote = [PSCustomObject]@{
-                    Name = $dir.Name
-                    Path = $dir.FullName
-                    Type = $type
-                    Port = $port
-                    Exposes = @{}
-                    WebComponent = @{ Name = "$($dir.Name)Widget"; Tag = "$($dir.Name)-widget" }
-                    PackageName = $packageJson.name
-                    Warning = "No microfrontend metadata in package.json"
-                }
-                
-                $remotes += $remote
+            
+            if (-not $mf.port) {
+                Write-Host "    SKIP: microfrontend.port is missing" -ForegroundColor DarkYellow
+                continue
             }
+            
+            # Create remote object
+            $remote = [PSCustomObject]@{
+                Name = $dir.Name                        # Folder name (e.g., "products")
+                Path = $dir.FullName                    # Full path to remote directory
+                Type = $mf.type                         # Type (e.g., "react-vite", "angular-webpack")
+                Port = [int]$mf.port                    # Port number
+                Exposes = $mf.exposes                   # Exposed modules for MF
+                WebComponent = $mf.webcomponent         # Web component metadata
+                PackageName = $packageJson.name         # Package name from package.json
+            }
+            
+            $remotes += $remote
+            Write-Host "    OK: Added $($remote.Name) ($($remote.Type)) on port $($remote.Port)" -ForegroundColor Green
         }
-        catch {
-            Write-Warning "Failed to parse package.json for $($dir.Name): $($_.Exception.Message)"
+        else {
+            Write-Host "    SKIP: No microfrontend metadata" -ForegroundColor DarkYellow
         }
+    }
+    catch {
+        Write-Host "    ERROR: Failed to parse package.json: $($_.Exception.Message)" -ForegroundColor Red
     }
 }
 
-return $remotes
+Write-Host ""
+$remoteCount = ($remotes | Measure-Object).Count
+Write-Host "Discovered $remoteCount valid remotes" -ForegroundColor Green
 
+# Return the array of remotes
+return $remotes

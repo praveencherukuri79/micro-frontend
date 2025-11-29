@@ -9,11 +9,15 @@ import { useThemeStore } from "../store/themeStore";
  */
 const VuePage = () => {
   const { mode } = useThemeStore();
+  const apiBasePath =
+    import.meta.env.VITE_API_BASE_PATH || window.location.origin;
+
   const { containerRef, error } = useModuleFederationRemote(
     () => import("vueApp/App") as any,
     "Vue",
     5005,
-    mode
+    mode,
+    apiBasePath
   );
 
   if (error) {

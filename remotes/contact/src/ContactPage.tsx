@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Container,
   Typography,
@@ -10,10 +10,20 @@ import {
   CardContent,
   Alert,
   Snackbar,
+  CircularProgress,
+  Chip,
 } from "@mui/material";
 import { Email, Phone, LocationOn, Send } from "@mui/icons-material";
+import { ContactApiService, ContactConfig } from "./services/apiService";
 
-export default function ContactPage() {
+// API service instance
+let apiService: ContactApiService;
+
+interface ContactPageProps {
+  apiBasePath?: string;
+}
+
+export default function ContactPage({ apiBasePath }: ContactPageProps = {}) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -21,6 +31,37 @@ export default function ContactPage() {
     message: "",
   });
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [config, setConfig] = useState<ContactConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Initialize API service
+  useEffect(() => {
+    apiService = new ContactApiService(apiBasePath);
+    console.log(
+      `[Contact Remote] Initialized with API base: ${apiService.getBasePath()}`
+    );
+  }, [apiBasePath]);
+
+  // Fetch contact config
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        setLoading(true);
+        const data = await apiService.fetchContactConfig();
+        setConfig(data);
+      } catch (err) {
+        console.error("Failed to load contact config:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (apiService) {
+      loadConfig();
+    }
+  }, [apiBasePath]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -31,43 +72,73 @@ export default function ContactPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Form submission logic can be integrated here
-    setOpenSnackbar(true);
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    setSubmitting(true);
+
+    try {
+      const response = await apiService.submitContactForm(formData);
+      setSnackbarMessage(
+        response.message + (response.ticketId ? ` (${response.ticketId})` : "")
+      );
+      setOpenSnackbar(true);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (err) {
+      setSnackbarMessage("Failed to submit form. Please try again.");
+      setOpenSnackbar(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const contactInfo = [
     {
       icon: <Email sx={{ fontSize: 40 }} />,
       title: "Email",
-      detail: "support@modulefedstore.com",
-      link: "mailto:support@modulefedstore.com",
+      detail: config?.supportEmail || "Loading...",
+      link: `mailto:${config?.supportEmail}`,
     },
     {
       icon: <Phone sx={{ fontSize: 40 }} />,
       title: "Phone",
-      detail: "+1 (555) 123-4567",
-      link: "tel:+15551234567",
+      detail: config?.phone || "Loading...",
+      link: `tel:${config?.phone?.replace(/\D/g, "")}`,
     },
     {
       icon: <LocationOn sx={{ fontSize: 40 }} />,
       title: "Address",
-      detail: "123 Commerce St, Tech City, TC 12345",
+      detail: config?.address || "Loading...",
       link: "#",
     },
   ];
 
+  if (loading) {
+    return (
+      <Container sx={{ py: 4, textAlign: "center" }}>
+        <CircularProgress />
+        <Typography sx={{ mt: 2 }}>Loading contact information...</Typography>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" gutterBottom fontWeight={600} mb={2}>
-        Contact Us
-      </Typography>
-      <Typography variant="h6" color="text.secondary" paragraph mb={6}>
-        Have questions? We'd love to hear from you. Send us a message and we'll
-        respond as soon as possible.
-      </Typography>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" gutterBottom fontWeight={600}>
+          Contact Us
+        </Typography>
+        <Typography variant="h6" color="text.secondary" paragraph>
+          Have questions? We'd love to hear from you. Send us a message and
+          we'll respond as soon as possible.
+        </Typography>
+        <Chip
+          label={`API: ${apiService?.getBasePath() || "Not set"}`}
+          size="small"
+          color="primary"
+          variant="outlined"
+          sx={{ mt: 1 }}
+        />
+      </Box>
 
       <Grid container spacing={4}>
         {/* Contact Information */}
@@ -160,11 +231,14 @@ export default function ContactPage() {
                       type="submit"
                       variant="contained"
                       size="large"
-                      endIcon={<Send />}
+                      endIcon={
+                        submitting ? <CircularProgress size={20} /> : <Send />
+                      }
                       fullWidth
+                      disabled={submitting}
                       sx={{ py: 1.5 }}
                     >
-                      Send Message
+                      {submitting ? "Sending..." : "Send Message"}
                     </Button>
                   </Grid>
                 </Grid>
@@ -205,7 +279,7 @@ export default function ContactPage() {
           severity="success"
           sx={{ width: "100%" }}
         >
-          Thank you for your message! We'll get back to you soon.
+          {snackbarMessage || "Thank you for your message!"}
         </Alert>
       </Snackbar>
     </Container>

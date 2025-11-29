@@ -1,65 +1,57 @@
 <#
 .SYNOPSIS
-    Build all remotes for Module Federation in parallel
+    Build all Module Federation remotes in parallel
 
 .DESCRIPTION
-    Builds all remote applications for Module Federation mode
-    Each remote is built in parallel to save time
+    Builds all remote applications for Module Federation
+    - Deletes old dist folders before building (prevents stale builds)
+    - Runs builds in parallel for speed
+    - Verifies build outputs exist
+    - Shows detailed error messages on failure
 
 .EXAMPLE
     .\scripts\mf-build-all.ps1
 #>
 
-Write-Host "Building all remotes for Module Federation..." -ForegroundColor Cyan
-Write-Host ""
+# Import Module Federation build utilities
+. "$PSScriptRoot\utils-build-mf.ps1"
 
-# Get all remotes
+Write-Host ""
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "Module Federation: Build All Remotes" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+
+# Get all remotes from package.json metadata
+Write-Host ""
+Write-Host "Discovering remotes..." -ForegroundColor Yellow
 $remotes = & "$PSScriptRoot\utils-get-remotes.ps1"
 
-Write-Host "Found $($remotes.Count) remotes:" -ForegroundColor Yellow
-$remotes | ForEach-Object { Write-Host "  - $($_.Name) ($($_.Type)) on port $($_.Port)" }
-Write-Host ""
+# Validate remotes were found
+$remoteCount = ($remotes | Measure-Object).Count
+if (-not $remotes -or $remoteCount -eq 0) {
+    Write-Host ""
+    Write-Host "ERROR: No remotes found" -ForegroundColor Red
+    Write-Host "Make sure remotes have 'microfrontend' metadata in their package.json" -ForegroundColor Yellow
+    exit 1
+}
 
-$startTime = Get-Date
-$jobs = @()
-
-# Build all remotes in parallel
+Write-Host "Found $remoteCount remotes:" -ForegroundColor Green
 foreach ($remote in $remotes) {
-    Write-Host "Starting build: $($remote.Name)..." -ForegroundColor Yellow
-    $jobs += Start-Job -ScriptBlock {
-        param($remotePath)
-        Set-Location $remotePath
-        npm run build 2>&1
-    } -ArgumentList $remote.Path -Name "Build-$($remote.Name)"
+    Write-Host "  - $($remote.Name) ($($remote.Type)) on port $($remote.Port)" -ForegroundColor White
 }
 
-Write-Host ""
-Write-Host "Waiting for all builds to complete..." -ForegroundColor Cyan
+# Execute parallel builds using the utility function
+$buildResult = Build-AllMFRemotes -Remotes $remotes
+
+# Display results using the utility function
+# Returns $true if all builds succeeded, $false otherwise
+$allSuccess = Show-MFBuildResults -Results $buildResult.Results -TotalDuration $buildResult.TotalDuration
+
 Write-Host ""
 
-# Wait for all jobs
-$jobs | Wait-Job | Out-Null
-
-# Show results
-foreach ($job in $jobs) {
-    $remoteName = $job.Name.Replace("Build-", "")
-    if ($job.State -eq "Completed") {
-        Write-Host "[OK] $remoteName" -ForegroundColor Green
-    }
-    else {
-        Write-Host "[FAIL] $remoteName" -ForegroundColor Red
-        # Show error output
-        $output = Receive-Job $job
-        Write-Host $output -ForegroundColor Red
-    }
+# Exit with appropriate code
+if ($allSuccess) {
+    exit 0
+} else {
+    exit 1
 }
-
-# Cleanup
-$jobs | Remove-Job
-
-$endTime = Get-Date
-$duration = ($endTime - $startTime).TotalSeconds
-
-Write-Host ""
-Write-Host "Build completed: $($remotes.Count) remotes in $([math]::Round($duration, 1))s" -ForegroundColor Cyan
-

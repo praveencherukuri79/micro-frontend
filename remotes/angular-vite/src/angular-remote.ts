@@ -8,8 +8,14 @@ import { platformBrowserDynamic } from "@angular/platform-browser-dynamic";
 import "zone.js";
 import { AppModule } from "./app.module";
 import { AppComponent } from "./components/app/app.component";
+import { ApiService } from "./services/api.service";
 import { ThemeMode } from "./services/theme.service";
 import { showError } from "./utils/errorFallback";
+
+export interface MountOptions {
+  theme?: ThemeMode;
+  apiBasePath?: string;
+}
 
 /**
  * Angular Remote - Module Federation entry point
@@ -17,8 +23,9 @@ import { showError } from "./utils/errorFallback";
  */
 export default async function mount(
   container: HTMLElement,
-  theme: ThemeMode = "light"
+  options: MountOptions = {}
 ): Promise<() => void> {
+  const { theme = "light", apiBasePath } = options;
   try {
     // Create a mount point div
     const mountPoint = document.createElement("div");
@@ -56,7 +63,12 @@ export default async function mount(
     // Trigger initial change detection
     componentRef.changeDetectorRef.detectChanges();
 
-    console.log("Angular remote mounted successfully");
+    // Set API base path
+    const apiService = componentRef.injector.get(ApiService);
+    apiService.setBasePath(apiBasePath);
+
+    console.log("Angular Vite remote mounted successfully");
+    console.log(`API base path: ${apiService.getBasePath()}`);
 
     // Return cleanup function
     return () => {

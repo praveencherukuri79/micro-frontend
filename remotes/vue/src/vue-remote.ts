@@ -4,14 +4,20 @@ import App from "./components/app/App.vue";
 
 export type ThemeMode = "light" | "dark";
 
+export interface MountOptions {
+  theme?: ThemeMode;
+  apiBasePath?: string;
+}
+
 /**
  * Vue Remote - Module Federation entry point
  * Creates and mounts the Vue application
  */
 export default function mount(
   container: HTMLElement,
-  theme: ThemeMode = "light"
+  options: MountOptions = {}
 ): () => void {
+  const { theme = "light", apiBasePath } = options;
   try {
     const mountPoint = document.createElement("div");
     container.appendChild(mountPoint);
@@ -19,10 +25,17 @@ export default function mount(
     const pinia = createPinia();
     const app: VueApp = createApp(App, {
       initialTheme: theme,
+      apiBasePath,
     });
 
     app.use(pinia);
     app.mount(mountPoint);
+
+    console.log(
+      `[Vue Remote] Mounted with API base: ${
+        apiBasePath || window.location.origin
+      }`
+    );
 
     return () => {
       try {

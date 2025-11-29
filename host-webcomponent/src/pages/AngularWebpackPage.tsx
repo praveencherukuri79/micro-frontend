@@ -10,6 +10,8 @@ export const AngularWebpackPage = () => {
     mode
   );
 
+  const apiBasePath = window.location.origin;
+
   return (
     <WebComponentLoader
       loading={loading}
@@ -17,7 +19,7 @@ export const AngularWebpackPage = () => {
       widgetName="Angular Webpack"
     >
       <Box ref={containerRef} sx={{ width: "100%", minHeight: "100vh" }}>
-        <angular-webpack-widget theme={mode} />
+        <angular-webpack-widget theme={mode} api-base-path={apiBasePath} />
       </Box>
     </WebComponentLoader>
   );

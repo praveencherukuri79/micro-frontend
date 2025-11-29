@@ -10,10 +10,13 @@ export const ProductsPage = () => {
     mode
   );
 
+  // Define API base path (can be from env, config, or auto-resolve)
+  const apiBasePath = window.location.origin; // Or from config
+
   return (
     <WebComponentLoader loading={loading} error={error} widgetName="Products">
       <Box ref={containerRef} sx={{ width: "100%", minHeight: "100vh" }}>
-        <products-widget theme={mode} />
+        <products-widget theme={mode} api-base-path={apiBasePath} />
       </Box>
     </WebComponentLoader>
   );

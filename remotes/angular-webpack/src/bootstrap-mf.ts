@@ -8,6 +8,12 @@ import { createApplication } from '@angular/platform-browser';
 import 'zone.js';
 import { AppComponent } from './components/app/app.component';
 import { ThemeMode, ThemeService } from './services/theme.service';
+import { ApiService } from './services/api.service';
+
+export interface MountOptions {
+  theme?: ThemeMode;
+  apiBasePath?: string;
+}
 
 /**
  * Bootstrap function for Module Federation
@@ -15,8 +21,9 @@ import { ThemeMode, ThemeService } from './services/theme.service';
  */
 export async function bootstrapAngularComponent(
   container: HTMLElement,
-  theme: ThemeMode = 'light'
+  options: MountOptions = {}
 ): Promise<() => void> {
+  const { theme = 'light', apiBasePath } = options;
   const mountPoint = document.createElement('div');
   mountPoint.id = `angular-webpack-${Date.now()}`;
   container.appendChild(mountPoint);
@@ -45,7 +52,12 @@ export async function bootstrapAngularComponent(
   const themeService = componentRef.injector.get(ThemeService);
   themeService.setTheme(theme);
 
+  // Set API base path
+  const apiService = componentRef.injector.get(ApiService);
+  apiService.setBasePath(apiBasePath);
+
   console.log('Angular webpack remote mounted successfully');
+  console.log(`API base path: ${apiService.getBasePath()}`);
 
   return () => {
     try {

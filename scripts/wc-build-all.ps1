@@ -1,63 +1,57 @@
 <#
 .SYNOPSIS
-    Build all web components in parallel
+    Build all Web Components in parallel
 
 .DESCRIPTION
-    Builds web components for all remotes in parallel
-    Each remote outputs a standalone web component to dist-webcomponent/
-    Does NOT copy to widgets/ directory (use wc-copy-widgets.ps1 for that)
+    Builds all remotes as standalone web components
+    - Deletes old dist-webcomponent folders before building (prevents stale builds)
+    - Runs builds in parallel for speed
+    - Verifies build outputs exist
+    - Shows detailed error messages on failure
 
 .EXAMPLE
     .\scripts\wc-build-all.ps1
 #>
 
-Write-Host "Building all web components..." -ForegroundColor Cyan
-Write-Host ""
+# Import Web Component build utilities
+. "$PSScriptRoot\utils-build-wc.ps1"
 
-# Get all remotes
+Write-Host ""
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "Web Components: Build All" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+
+# Get all remotes from package.json metadata
+Write-Host ""
+Write-Host "Discovering remotes..." -ForegroundColor Yellow
 $remotes = & "$PSScriptRoot\utils-get-remotes.ps1"
 
-Write-Host "Found $($remotes.Count) remotes:" -ForegroundColor Yellow
-$remotes | ForEach-Object { Write-Host "  - $($_.Name)" }
-Write-Host ""
+# Validate remotes were found
+$remoteCount = ($remotes | Measure-Object).Count
+if (-not $remotes -or $remoteCount -eq 0) {
+    Write-Host ""
+    Write-Host "ERROR: No remotes found" -ForegroundColor Red
+    Write-Host "Make sure remotes have 'microfrontend' metadata in their package.json" -ForegroundColor Yellow
+    exit 1
+}
 
-$startTime = Get-Date
-$jobs = @()
-
-# Build all web components in parallel
+Write-Host "Found $remoteCount remotes:" -ForegroundColor Green
 foreach ($remote in $remotes) {
-    Write-Host "Starting build: $($remote.Name) web component..." -ForegroundColor Yellow
-    $jobs += Start-Job -ScriptBlock {
-        param($remotePath)
-        Set-Location $remotePath
-        npm run build:webcomponent 2>&1
-    } -ArgumentList $remote.Path -Name "BuildWC-$($remote.Name)"
+    Write-Host "  - $($remote.Name)" -ForegroundColor White
 }
 
-Write-Host ""
-Write-Host "Waiting for all builds to complete..." -ForegroundColor Cyan
+# Execute parallel builds using the utility function
+$buildResult = Build-AllWebComponents -Remotes $remotes
+
+# Display results using the utility function
+# Returns $true if all builds succeeded, $false otherwise
+$allSuccess = Show-WCBuildResults -Results $buildResult.Results -TotalDuration $buildResult.TotalDuration
+
 Write-Host ""
 
-# Wait for all jobs
-$jobs | Wait-Job | Out-Null
-
-# Show results
-foreach ($job in $jobs) {
-    $remoteName = $job.Name.Replace("BuildWC-", "")
-    if ($job.State -eq "Completed") {
-        Write-Host "[OK] $remoteName" -ForegroundColor Green
-    }
-    else {
-        Write-Host "[FAIL] $remoteName" -ForegroundColor Red
-    }
+# Exit with appropriate code
+if ($allSuccess) {
+    exit 0
+} else {
+    exit 1
 }
-
-# Cleanup
-$jobs | Remove-Job
-
-$endTime = Get-Date
-$duration = ($endTime - $startTime).TotalSeconds
-
-Write-Host ""
-Write-Host "Web component build completed: $($remotes.Count) widgets in $([math]::Round($duration, 1))s" -ForegroundColor Cyan
-

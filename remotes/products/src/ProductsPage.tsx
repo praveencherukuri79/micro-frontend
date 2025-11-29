@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Container,
   Typography,
@@ -12,79 +12,55 @@ import {
   Rating,
   TextField,
   InputAdornment,
+  CircularProgress,
+  Alert,
 } from "@mui/material";
 import { ShoppingCart, Search } from "@mui/icons-material";
+import { ProductApiService, ProductApiData } from "./services/apiService";
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  category: string;
-  rating: number;
-  image: string;
-  description: string;
+// API service instance (will be initialized with basePath)
+let apiService: ProductApiService;
+
+interface ProductsPageProps {
+  apiBasePath?: string; // Passed from host
 }
 
-const products: Product[] = [
-  {
-    id: 1,
-    name: "Premium Headphones",
-    price: 299.99,
-    category: "Electronics",
-    rating: 4.5,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
-    description: "High-quality wireless headphones with noise cancellation",
-  },
-  {
-    id: 2,
-    name: "Smart Watch",
-    price: 399.99,
-    category: "Electronics",
-    rating: 4.8,
-    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
-    description: "Feature-rich smartwatch with health tracking",
-  },
-  {
-    id: 3,
-    name: "Laptop Stand",
-    price: 49.99,
-    category: "Accessories",
-    rating: 4.3,
-    image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400",
-    description: "Ergonomic aluminum laptop stand",
-  },
-  {
-    id: 4,
-    name: "Mechanical Keyboard",
-    price: 159.99,
-    category: "Electronics",
-    rating: 4.7,
-    image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400",
-    description: "RGB mechanical keyboard with premium switches",
-  },
-  {
-    id: 5,
-    name: "Wireless Mouse",
-    price: 79.99,
-    category: "Electronics",
-    rating: 4.4,
-    image: "https://images.unsplash.com/photo-1527814050087-3793815479db?w=400",
-    description: "Ergonomic wireless mouse with precision tracking",
-  },
-  {
-    id: 6,
-    name: "USB-C Hub",
-    price: 69.99,
-    category: "Accessories",
-    rating: 4.6,
-    image: "https://images.unsplash.com/photo-1625948515291-69613efd103f?w=400",
-    description: "7-in-1 USB-C hub with multiple ports",
-  },
-];
-
-export default function ProductsPage() {
+export default function ProductsPage({ apiBasePath }: ProductsPageProps = {}) {
+  const [products, setProducts] = useState<ProductApiData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
+  // Initialize API service with basePath
+  useEffect(() => {
+    apiService = new ProductApiService(apiBasePath);
+    console.log(
+      `[Products Remote] Initialized with API base: ${apiService.getBasePath()}`
+    );
+  }, [apiBasePath]);
+
+  // Fetch products on mount
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await apiService.fetchProducts();
+        setProducts(data);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load products"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (apiService) {
+      loadProducts();
+    }
+  }, [apiBasePath]);
 
   const categories = [
     "All",
@@ -101,15 +77,40 @@ export default function ProductsPage() {
   });
 
   const handleAddToCart = (productId: number) => {
-    // Cart integration via Module Federation can be implemented here
-    void productId;
+    console.log(`[Products Remote] Add to cart: ${productId}`);
   };
+
+  if (loading) {
+    return (
+      <Container sx={{ py: 4, textAlign: "center" }}>
+        <CircularProgress />
+        <Typography sx={{ mt: 2 }}>Loading products...</Typography>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container sx={{ py: 4 }}>
+        <Alert severity="error">{error}</Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" gutterBottom fontWeight={600} mb={4}>
-        Our Products
-      </Typography>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" gutterBottom fontWeight={600}>
+          Our Products
+        </Typography>
+        <Chip
+          label={`API: ${apiService?.getBasePath() || "Not set"}`}
+          size="small"
+          color="primary"
+          variant="outlined"
+          sx={{ mt: 1 }}
+        />
+      </Box>
 
       {/* Search and Filter */}
       <Box sx={{ mb: 4 }}>
@@ -197,6 +198,12 @@ export default function ProductsPage() {
                       sx={{ ml: 1 }}
                     >
                       ({product.rating})
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mb: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Stock: {product.stock}
                     </Typography>
                   </Box>
 

@@ -9,11 +9,17 @@ import { useThemeStore } from "../store/themeStore";
  */
 const AngularWebpackPage = () => {
   const { mode } = useThemeStore();
+
+  // Define API base path (can be from env, config, or auto-resolve)
+  const apiBasePath =
+    import.meta.env.VITE_API_BASE_PATH || window.location.origin;
+
   const { containerRef, error } = useModuleFederationRemote(
     () => import("angularWebpack/App") as any,
     "Angular Webpack",
     5004,
-    mode
+    mode,
+    apiBasePath // Pass API base path
   );
 
   if (error) {

@@ -13,9 +13,10 @@ import { createWebComponentTheme } from "./utils/theme";
 class ContactWebComponent extends HTMLElement {
   private root: ReactDOM.Root | null = null;
   private themeMode: ThemeMode = "light";
+  private apiBasePath: string = window.location.origin;
 
   static get observedAttributes() {
-    return ["theme"];
+    return ["theme", "api-base-path"];
   }
 
   connectedCallback() {
@@ -30,6 +31,9 @@ class ContactWebComponent extends HTMLElement {
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (name === "theme" && oldValue !== newValue) {
       this.themeMode = getThemeMode(newValue);
+      this.mount();
+    } else if (name === "api-base-path" && oldValue !== newValue) {
+      this.apiBasePath = newValue || window.location.origin;
       this.mount();
     }
   }
@@ -50,7 +54,7 @@ class ContactWebComponent extends HTMLElement {
       <React.StrictMode>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <ContactPage />
+          <ContactPage apiBasePath={this.apiBasePath} />
         </ThemeProvider>
       </React.StrictMode>
     );

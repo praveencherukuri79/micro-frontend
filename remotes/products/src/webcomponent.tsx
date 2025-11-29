@@ -13,9 +13,10 @@ import {
 class ProductsWebComponent extends HTMLElement {
   private root: ReactDOM.Root | null = null;
   private themeMode: ThemeMode = "light";
+  private apiBasePath: string = window.location.origin; // Default
 
   static get observedAttributes() {
-    return ["theme"];
+    return ["theme", "api-base-path"]; // Add api-base-path attribute
   }
 
   connectedCallback() {
@@ -30,6 +31,9 @@ class ProductsWebComponent extends HTMLElement {
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (name === "theme" && oldValue !== newValue) {
       this.themeMode = getThemeMode(newValue);
+      this.mount();
+    } else if (name === "api-base-path" && oldValue !== newValue) {
+      this.apiBasePath = newValue || window.location.origin;
       this.mount();
     }
   }
@@ -50,7 +54,7 @@ class ProductsWebComponent extends HTMLElement {
       <React.StrictMode>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <ProductsPage />
+          <ProductsPage apiBasePath={this.apiBasePath} />
         </ThemeProvider>
       </React.StrictMode>
     );

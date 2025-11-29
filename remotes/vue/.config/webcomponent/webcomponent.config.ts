@@ -1,5 +1,9 @@
 /**
  * Web Component Build Configuration for Vue Remote
+ *
+ * Note: Vite will extract CSS from .vue files to style.css
+ * We don't use it because CSS is manually injected via ?raw import in webcomponent.ts
+ * The extracted style.css file can be safely ignored
  */
 
 export const webComponentConfig = {
@@ -8,7 +12,7 @@ export const webComponentConfig = {
     entry: "./src/webcomponent.ts",
     name: "VueWidget",
     fileName: "vue-widget",
-    formats: ["iife"],
+    formats: ["iife"] as const,
   },
   cssCodeSplit: false,
   rollupOptions: {
@@ -20,6 +24,4 @@ export const webComponentConfig = {
 
 export const defineConfig = {
   "process.env": {},
-  // This tells Vite to inject CSS into JS
-  __VITE_IS_MODERN_FLAG: true,
 };

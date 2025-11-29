@@ -9,6 +9,7 @@ import "zone.js";
 import { AppModule } from "./app.module";
 import { AppComponent } from "./components/app/app.component";
 import { ThemeService } from "./services/theme.service";
+import { ApiService } from "./services/api.service";
 import { applyThemeVariables, createWebComponentTheme } from "./utils/theme";
 import {
   ThemeMode,
@@ -20,12 +21,13 @@ import { createErrorElement } from "./utils/errorFallback";
 
 class AngularWebComponent extends HTMLElement {
   private themeMode: ThemeMode = "light";
+  private apiBasePath: string = window.location.origin;
   private mountPoint: HTMLDivElement | null = null;
   private componentRef: ComponentRef<AppComponent> | null = null;
   private moduleRef: any = null;
 
   static get observedAttributes(): string[] {
-    return ["theme"];
+    return ["theme", "api-base-path"];
   }
 
   connectedCallback(): void {
@@ -45,6 +47,12 @@ class AngularWebComponent extends HTMLElement {
       this.themeMode = getThemeMode(newValue);
       if (this.componentRef) {
         this.updateTheme();
+      }
+    } else if (name === "api-base-path" && oldValue !== newValue) {
+      this.apiBasePath = newValue || window.location.origin;
+      if (this.componentRef) {
+        const apiService = this.componentRef.injector.get(ApiService);
+        apiService.setBasePath(this.apiBasePath);
       }
     }
   }
@@ -89,6 +97,10 @@ class AngularWebComponent extends HTMLElement {
       // Attach to Angular change detection
       applicationRef.attachView(this.componentRef.hostView);
       this.componentRef.changeDetectorRef.detectChanges();
+
+      // Set API base path
+      const apiService = this.componentRef.injector.get(ApiService);
+      apiService.setBasePath(this.apiBasePath);
 
       // Emit ready event
       emitCustomEvent(this, "angular-ready", { theme: this.themeMode });

@@ -9,11 +9,15 @@ import { useThemeStore } from "../store/themeStore";
  */
 const AngularVitePage = () => {
   const { mode } = useThemeStore();
+  const apiBasePath =
+    import.meta.env.VITE_API_BASE_PATH || window.location.origin;
+
   const { containerRef, error } = useModuleFederationRemote(
     () => import("angularVite/App") as any,
     "Angular Vite",
     5006,
-    mode
+    mode,
+    apiBasePath
   );
 
   if (error) {

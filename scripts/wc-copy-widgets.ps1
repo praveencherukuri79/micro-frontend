@@ -17,10 +17,23 @@
 Write-Host "Copying web components to widgets directory..." -ForegroundColor Cyan
 Write-Host ""
 
-# Ensure widgets directories exist
+# Define directories
 $widgetsDir = Join-Path $PSScriptRoot "..\widgets"
 $publicWidgetsDir = Join-Path $PSScriptRoot "..\host-webcomponent\public\widgets"
 
+# CRITICAL: Delete old widgets to prevent stale builds
+if (Test-Path $widgetsDir) {
+    Write-Host "Deleting old widgets directory: $widgetsDir" -ForegroundColor DarkYellow
+    Remove-Item $widgetsDir -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+if (Test-Path $publicWidgetsDir) {
+    Write-Host "Deleting old public widgets directory: $publicWidgetsDir" -ForegroundColor DarkYellow
+    Remove-Item $publicWidgetsDir -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# Ensure widgets directories exist (fresh)
+Write-Host "Creating fresh widgets directories..." -ForegroundColor Yellow
 New-Item -ItemType Directory -Path $widgetsDir -Force | Out-Null
 New-Item -ItemType Directory -Path $publicWidgetsDir -Force | Out-Null
 
@@ -36,7 +49,8 @@ foreach ($remote in $remotes) {
     }
 }
 
-if ($unbuiltWidgets.Count -gt 0) {
+$unbuiltCount = ($unbuiltWidgets | Measure-Object).Count
+if ($unbuiltCount -gt 0) {
     Write-Host "ERROR: The following web components are not built:" -ForegroundColor Red
     $unbuiltWidgets | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
     Write-Host ""
@@ -74,10 +88,7 @@ foreach ($remote in $remotes) {
         }
         "vue" {
             Copy-Item "$distPath\vue-widget.iife.js" "$widgetsDir\vue-widget.js" -Force
-            if (Test-Path "$distPath\style.css") {
-                Copy-Item "$distPath\style.css" "$widgetsDir\vue-widget.css" -Force
-            }
-            Write-Host "[OK] Copied vue-widget.js + style.css" -ForegroundColor Green
+            Write-Host "[OK] Copied vue-widget.js" -ForegroundColor Green
         }
     }
 }
