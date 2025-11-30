@@ -30,15 +30,9 @@ export function useWebComponent(widgetName: string, theme: string) {
     loadWidget();
   }, [widgetName]);
 
-  // Update theme when it changes
-  useEffect(() => {
-    if (containerRef.current && !loading) {
-      const widget = containerRef.current.querySelector(widgetName);
-      if (widget) {
-        widget.setAttribute("theme", theme);
-      }
-    }
-  }, [theme, loading, widgetName]);
+  // Note: Theme updates are handled by React automatically
+  // React will update the 'theme' attribute on the web component element
+  // which triggers attributeChangedCallback in the web component
 
   return { containerRef, loading, error };
 }

@@ -43,13 +43,26 @@ class AngularWebComponent extends HTMLElement {
     oldValue: string,
     newValue: string
   ): void {
+    console.log(`[Angular Vite WC] attributeChangedCallback called:`, {
+      name,
+      oldValue,
+      newValue,
+      hasComponentRef: !!this.componentRef,
+      hasModuleRef: !!this.moduleRef
+    });
+
     if (name === "theme" && oldValue !== newValue) {
       this.themeMode = getThemeMode(newValue);
+      console.log(`[Angular Vite WC] Theme mode updated to: ${this.themeMode}`);
       if (this.componentRef) {
+        console.log(`[Angular Vite WC] Calling updateTheme()`);
         this.updateTheme();
+      } else {
+        console.log(`[Angular Vite WC] Component not mounted yet, skipping theme update`);
       }
     } else if (name === "api-base-path" && oldValue !== newValue) {
       this.apiBasePath = newValue || window.location.origin;
+      console.log(`[Angular Vite WC] API base path updated to: ${this.apiBasePath}`);
       if (this.componentRef) {
         const apiService = this.componentRef.injector.get(ApiService);
         apiService.setBasePath(this.apiBasePath);
@@ -98,6 +111,10 @@ class AngularWebComponent extends HTMLElement {
       applicationRef.attachView(this.componentRef.hostView);
       this.componentRef.changeDetectorRef.detectChanges();
 
+      // Initialize theme from host (ensures ThemeService uses the correct theme)
+      const themeService = this.componentRef.injector.get(ThemeService);
+      themeService.initializeFromExternal(this.themeMode);
+
       // Set API base path
       const apiService = this.componentRef.injector.get(ApiService);
       apiService.setBasePath(this.apiBasePath);
@@ -112,20 +129,32 @@ class AngularWebComponent extends HTMLElement {
 
   private updateTheme(): void {
     try {
-      if (!this.mountPoint || !this.componentRef) return;
+      console.log(`[Angular Vite WC] updateTheme called, themeMode: ${this.themeMode}`);
+      
+      if (!this.mountPoint || !this.componentRef) {
+        console.log(`[Angular Vite WC] Cannot update theme - missing mountPoint or componentRef`);
+        return;
+      }
 
       const theme = createWebComponentTheme(this.themeMode);
+      console.log(`[Angular Vite WC] Created web component theme:`, theme);
       applyThemeVariables(this.mountPoint, theme);
+      console.log(`[Angular Vite WC] Applied theme variables to mount point`);
 
       // Update component theme via service
       if (this.moduleRef) {
         const themeService = this.moduleRef.injector.get(ThemeService);
+        console.log(`[Angular Vite WC] ThemeService obtained, current theme:`, themeService.getCurrentTheme());
         themeService.setTheme(this.themeMode);
+        console.log(`[Angular Vite WC] ThemeService.setTheme called, new theme:`, themeService.getCurrentTheme());
+      } else {
+        console.log(`[Angular Vite WC] No moduleRef, cannot update ThemeService`);
       }
 
       emitCustomEvent(this, "theme-changed", { theme: this.themeMode });
+      console.log(`[Angular Vite WC] theme-changed event emitted`);
     } catch (error) {
-      console.error("Error updating theme:", error);
+      console.error("[Angular Vite WC] Error updating theme:", error);
     }
   }
 

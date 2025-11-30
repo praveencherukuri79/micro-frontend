@@ -7,8 +7,8 @@ import {
 import { createApplication } from '@angular/platform-browser';
 import 'zone.js';
 import { AppComponent } from './components/app/app.component';
-import { ThemeMode, ThemeService } from './services/theme.service';
 import { ApiService } from './services/api.service';
+import { ThemeMode, ThemeService } from './services/theme.service';
 
 export interface MountOptions {
   theme?: ThemeMode;
@@ -44,30 +44,32 @@ export async function bootstrapAngularComponent(
     }
   );
 
-  componentRef.instance.initialTheme = theme;
-
   applicationRef.attachView(componentRef.hostView);
-  componentRef.changeDetectorRef.detectChanges();
 
+  // Initialize theme from host
   const themeService = componentRef.injector.get(ThemeService);
-  themeService.setTheme(theme);
+  themeService.initializeFromExternal(theme);
+
+  componentRef.changeDetectorRef.detectChanges();
 
   // Set API base path
   const apiService = componentRef.injector.get(ApiService);
   apiService.setBasePath(apiBasePath);
 
-  console.log('Angular webpack remote mounted successfully');
-  console.log(`API base path: ${apiService.getBasePath()}`);
+  let destroyed = false;
 
   return () => {
+    if (destroyed) {
+      return;
+    }
+    destroyed = true;
+
     try {
       applicationRef.detachView(componentRef.hostView);
       componentRef.destroy();
-      appRef.destroy();
-      mountPoint.remove();
-      console.log('Angular webpack remote unmounted');
+      container.innerHTML = '';
     } catch (error) {
-      console.error('Error cleaning up Angular app:', error);
+      console.error('[Angular Webpack MF] Error during cleanup:', error);
     }
   };
 }

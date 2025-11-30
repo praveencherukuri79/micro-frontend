@@ -9,12 +9,24 @@ export type ThemeMode = "light" | "dark";
 export class ThemeService {
   private themeSubject: BehaviorSubject<ThemeMode>;
   public theme$: Observable<ThemeMode>;
+  private initialized = false;
 
   constructor() {
     // Initialize with stored theme or default to light
     const storedTheme = this.getStoredTheme();
     this.themeSubject = new BehaviorSubject<ThemeMode>(storedTheme);
     this.theme$ = this.themeSubject.asObservable();
+  }
+
+  /**
+   * Initialize theme from external source (e.g., Module Federation host)
+   * This should be called once when the remote is mounted
+   */
+  initializeFromExternal(theme: ThemeMode): void {
+    if (!this.initialized) {
+      this.initialized = true;
+      this.setTheme(theme);
+    }
   }
 
   getCurrentTheme(): ThemeMode {
@@ -29,11 +41,6 @@ export class ThemeService {
     } catch (error) {
       console.error("Error setting theme:", error);
     }
-  }
-
-  toggleTheme(): void {
-    const newTheme = this.getCurrentTheme() === "light" ? "dark" : "light";
-    this.setTheme(newTheme);
   }
 
   private getStoredTheme(): ThemeMode {

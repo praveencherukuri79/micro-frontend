@@ -26,7 +26,6 @@ export class ApiService {
    */
   setBasePath(basePath?: string): void {
     this.basePath = basePath || window.location.origin;
-    console.log(`[Angular Remote] API base path set to: ${this.basePath}`);
   }
 
   /**
@@ -34,9 +33,6 @@ export class ApiService {
    * In real scenario: this.http.get(`${this.basePath}/api/analytics`)
    */
   fetchAnalytics(): Observable<AnalyticsData> {
-    console.log(
-      `[Angular Remote] Fetching from: ${this.basePath}/api/analytics`
-    );
 
     const mockData: AnalyticsData = {
       total: Math.floor(Math.random() * 50000) + 100000,

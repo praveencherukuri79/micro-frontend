@@ -1,4 +1,4 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, inject, OnDestroy } from "@angular/core";
 import {
   BehaviorSubject,
   Observable,
@@ -6,23 +6,31 @@ import {
   switchMap,
   catchError,
   of,
+  Subscription,
 } from "rxjs";
 import { ApiService, AnalyticsData } from "./api.service";
 
 @Injectable({
   providedIn: "root",
 })
-export class DataService {
+export class DataService implements OnDestroy {
   private dataSubject: BehaviorSubject<AnalyticsData>;
   public data$: Observable<AnalyticsData>;
-  private apiService = inject(ApiService);
+  public apiService = inject(ApiService); // Public for component access
+  private autoUpdateSubscription?: Subscription;
 
   constructor() {
+    console.log("[DataService Vite] Constructor called");
     const initialData = this.getInitialData();
     this.dataSubject = new BehaviorSubject<AnalyticsData>(initialData);
     this.data$ = this.dataSubject.asObservable();
 
-    this.startAutoUpdate();
+    // Don't start auto-update in constructor - let component control when to fetch
+  }
+
+  ngOnDestroy(): void {
+    console.log("[DataService Vite] ngOnDestroy called");
+    this.stopAutoUpdate();
   }
 
   private getInitialData(): AnalyticsData {
@@ -59,7 +67,10 @@ export class DataService {
   }
 
   private startAutoUpdate(): void {
-    interval(10000)
+    // Clean up any existing subscription first
+    this.stopAutoUpdate();
+
+    this.autoUpdateSubscription = interval(10000)
       .pipe(
         switchMap(() => this.apiService.fetchAnalytics()),
         catchError((error) => {
@@ -70,5 +81,12 @@ export class DataService {
       .subscribe((data) => {
         this.dataSubject.next(data);
       });
+  }
+
+  private stopAutoUpdate(): void {
+    if (this.autoUpdateSubscription) {
+      this.autoUpdateSubscription.unsubscribe();
+      this.autoUpdateSubscription = undefined;
+    }
   }
 }

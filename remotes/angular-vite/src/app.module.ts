@@ -8,7 +8,7 @@ import { ThemeService } from "./services/theme.service";
 @NgModule({
   declarations: [AppComponent],
   imports: [BrowserModule, CommonModule],
-  providers: [ThemeService, DataService],
+  providers: [DataService], // ThemeService is providedIn: 'root', don't override it here
 })
 export class AppModule implements DoBootstrap {
   ngDoBootstrap() {

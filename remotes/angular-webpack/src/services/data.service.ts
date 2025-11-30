@@ -1,13 +1,6 @@
-import { Injectable, inject } from '@angular/core';
-import {
-  BehaviorSubject,
-  Observable,
-  interval,
-  switchMap,
-  catchError,
-  of,
-} from 'rxjs';
-import { ApiService, AnalyticsData } from './api.service';
+import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject, catchError, Observable, of } from 'rxjs';
+import { AnalyticsData, ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root',
@@ -15,14 +8,12 @@ import { ApiService, AnalyticsData } from './api.service';
 export class DataService {
   private dataSubject: BehaviorSubject<AnalyticsData>;
   public data$: Observable<AnalyticsData>;
-  private apiService = inject(ApiService);
+  public apiService = inject(ApiService); // Public for component access
 
   constructor() {
     const initialData = this.getInitialData();
     this.dataSubject = new BehaviorSubject<AnalyticsData>(initialData);
     this.data$ = this.dataSubject.asObservable();
-
-    this.startAutoUpdate();
   }
 
   private getInitialData(): AnalyticsData {
@@ -54,21 +45,4 @@ export class DataService {
       });
   }
 
-  refreshData(): void {
-    this.loadData();
-  }
-
-  private startAutoUpdate(): void {
-    interval(10000)
-      .pipe(
-        switchMap(() => this.apiService.fetchAnalytics()),
-        catchError((error) => {
-          console.error('Error in auto-update:', error);
-          return of(this.getInitialData());
-        })
-      )
-      .subscribe((data) => {
-        this.dataSubject.next(data);
-      });
-  }
 }

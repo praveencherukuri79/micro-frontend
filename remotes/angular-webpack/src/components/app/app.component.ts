@@ -23,12 +23,26 @@ interface ChartDataItem {
   standalone: true,
   selector: 'app-root',
   imports: [CommonModule],
-  providers: [ThemeService, DataService],
+  providers: [DataService], // ThemeService is providedIn: 'root', don't override it here
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit, OnDestroy {
-  @Input() initialTheme: ThemeMode = 'light';
+  @Input() set theme(value: ThemeMode) {
+    const newTheme = value || 'light';
+    if (newTheme !== this.themeMode) {
+      this.themeMode = newTheme;
+      if (this.themeService) {
+        this.themeService.setTheme(newTheme);
+      }
+    }
+  }
+
+  @Input('api-base-path') set apiBasePath(value: string | undefined) {
+    if (this.dataService && this.dataService.apiService && value) {
+      this.dataService.apiService.setBasePath(value);
+    }
+  }
 
   private destroy$ = new Subject<void>();
 
@@ -40,14 +54,15 @@ export class AppComponent implements OnInit, OnDestroy {
   private dataService = inject(DataService);
 
   ngOnInit(): void {
-    this.themeMode = this.initialTheme;
-    this.themeService.setTheme(this.initialTheme);
-
+    // Subscribe to theme changes (theme is initialized externally in bootstrap or via @Input)
     this.themeService.theme$
       .pipe(takeUntil(this.destroy$))
       .subscribe((theme: ThemeMode) => {
         this.themeMode = theme;
       });
+
+    // Get current theme from service (set by bootstrap or @Input setter)
+    this.themeMode = this.themeService.getCurrentTheme();
 
     this.dataService.data$
       .pipe(takeUntil(this.destroy$))

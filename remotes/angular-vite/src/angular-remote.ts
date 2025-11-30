@@ -54,13 +54,15 @@ export default async function mount(
       }
     );
 
-    // Set the initial theme
-    componentRef.instance.initialTheme = theme;
-
     // Attach the component to Angular's change detection
     applicationRef.attachView(componentRef.hostView);
 
-    // Trigger initial change detection
+    // Initialize theme from host (this ensures ThemeService uses the host's theme)
+    const { ThemeService } = await import("./services/theme.service");
+    const themeService = componentRef.injector.get(ThemeService);
+    themeService.initializeFromExternal(theme);
+
+    // Trigger change detection
     componentRef.changeDetectorRef.detectChanges();
 
     // Set API base path
@@ -70,16 +72,37 @@ export default async function mount(
     console.log("Angular Vite remote mounted successfully");
     console.log(`API base path: ${apiService.getBasePath()}`);
 
+    let destroyed = false; // Flag to prevent double cleanup
+
     // Return cleanup function
     return () => {
+      if (destroyed) {
+        console.log("[Angular Vite MF] Cleanup already performed, skipping.");
+        return;
+      }
+      destroyed = true;
+
       try {
-        applicationRef.detachView(componentRef.hostView);
-        componentRef.destroy();
-        moduleRef.destroy();
-        container.innerHTML = "";
-        console.log("Angular remote unmounted");
+        console.log("[Angular Vite MF] Cleanup function called.");
+
+        if (componentRef && !componentRef.hostView.destroyed) {
+          console.log("[Angular Vite MF] Detaching view and destroying component.");
+          applicationRef.detachView(componentRef.hostView);
+          componentRef.destroy();
+        } else {
+          console.log("[Angular Vite MF] ComponentRef or hostView already destroyed/invalid.");
+        }
+
+        // Don't manually destroy moduleRef - it manages its own lifecycle
+        // Manually destroying it can lead to NG06006 errors
+
+        if (container) {
+          console.log("[Angular Vite MF] Clearing container.");
+          container.innerHTML = "";
+        }
+        console.log("[Angular Vite MF] Cleanup completed successfully.");
       } catch (error) {
-        console.error("Error cleaning up Angular app:", error);
+        console.error("[Angular Vite MF] Error during cleanup:", error);
       }
     };
   } catch (error) {
