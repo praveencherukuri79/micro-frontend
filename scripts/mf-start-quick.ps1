@@ -19,12 +19,17 @@
     .\scripts\mf-start-quick.ps1
 #>
 
-# Clean up ports before starting
-& "$PSScriptRoot\utils-kill-ports.ps1"
+# Stop on any error
+$ErrorActionPreference = "Stop"
 
+Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "Module Federation: Quick Start" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+
+# Clean up MF ports only (5000-5006) - won't affect WC host on 5010
+& "$PSScriptRoot\utils-kill-ports.ps1" -Context MF
 Write-Host ""
 
 # Get all remotes from package.json metadata
@@ -43,31 +48,61 @@ Write-Host ""
 Write-Host "Validating prerequisites..." -ForegroundColor Yellow
 Write-Host ""
 
-# Validation: Check if all remotes are built (have dist folders)
+# Validation 1: Check if dependencies are installed
+$missingDeps = @()
+$hostPath = Join-Path $PSScriptRoot "..\host"
+$hostNodeModules = Join-Path $hostPath "node_modules"
+
+Write-Host "Checking dependencies..." -ForegroundColor White
+
+if (-not (Test-Path $hostNodeModules)) {
+    $missingDeps += "host"
+}
+
+foreach ($remote in $remotes) {
+    $remoteNodeModules = Join-Path $remote.Path "node_modules"
+    if (-not (Test-Path $remoteNodeModules)) {
+        $missingDeps += $remote.Name
+    }
+}
+
+if (@($missingDeps).Count -gt 0) {
+    Write-Host "  FAIL: Dependencies missing in:" -ForegroundColor Red
+    foreach ($missing in $missingDeps) {
+        Write-Host "    - $missing" -ForegroundColor Red
+    }
+    Write-Host ""
+    Write-Host "Run the following first:" -ForegroundColor Yellow
+    Write-Host "  .\scripts\utils-install-all.ps1" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Or use preview mode (installs automatically):" -ForegroundColor Yellow
+    Write-Host "  .\scripts\mf-start-preview.ps1" -ForegroundColor White
+    Write-Host ""
+    exit 1
+}
+Write-Host "  OK: All dependencies installed" -ForegroundColor Green
+
+# Validation 2: Check if all remotes are built (have dist folders)
+Write-Host ""
+Write-Host "Checking builds..." -ForegroundColor White
+
 $unbuiltRemotes = @()  # Array to collect names of unbuilt remotes
 
 foreach ($remote in $remotes) {
-    Write-Host "Checking: $($remote.Name)" -ForegroundColor White
-    
     # Path to dist folder (derived from remote path)
     $distPath = Join-Path $remote.Path "dist"
     
     if (-not (Test-Path $distPath)) {
-        Write-Host "  FAIL: dist folder not found" -ForegroundColor Red
         $unbuiltRemotes += $remote.Name
-    }
-    else {
-        Write-Host "  OK: dist folder exists" -ForegroundColor Green
     }
 }
 
 # If any remotes are not built, stop and show error
 $unbuiltCount = ($unbuiltRemotes | Measure-Object).Count
 if ($unbuiltCount -gt 0) {
-    Write-Host ""
-    Write-Host "ERROR: The following remotes are not built:" -ForegroundColor Red
+    Write-Host "  FAIL: The following remotes are not built:" -ForegroundColor Red
     foreach ($remoteName in $unbuiltRemotes) {
-        Write-Host "  - $remoteName" -ForegroundColor Red
+        Write-Host "    - $remoteName" -ForegroundColor Red
     }
     Write-Host ""
     Write-Host "Run the following first:" -ForegroundColor Yellow
@@ -78,6 +113,7 @@ if ($unbuiltCount -gt 0) {
     Write-Host ""
     exit 1
 }
+Write-Host "  OK: All remotes built" -ForegroundColor Green
 
 Write-Host ""
 Write-Host "All prerequisites validated!" -ForegroundColor Green

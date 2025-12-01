@@ -8,12 +8,15 @@
     - host-webcomponent (Web Component host)
     - All discovered remotes
     
-    Runs installations in parallel for speed
+    Uses background processes (not jobs) to inherit PATH correctly
     Verifies node_modules folder exists after each installation
 
 .EXAMPLE
     .\scripts\utils-install-all.ps1
 #>
+
+# Stop on any error
+$ErrorActionPreference = "Stop"
 
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
@@ -21,192 +24,204 @@ Write-Host "Installing Dependencies for All Apps" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Get all remotes from package.json metadata
-Write-Host "Discovering remotes..." -ForegroundColor Yellow
+# ===========================================
+# STEP 1: Validate npm is available
+# ===========================================
+Write-Host "Validating npm..." -ForegroundColor Yellow
+
+try {
+    $npmVersion = npm --version 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "npm command failed"
+    }
+    Write-Host "  npm version: $npmVersion" -ForegroundColor Green
+}
+catch {
+    Write-Host "ERROR: npm is not available" -ForegroundColor Red
+    Write-Host "Please ensure Node.js and npm are installed and in your PATH" -ForegroundColor Yellow
+    exit 1
+}
+
+Write-Host ""
+
+# ===========================================
+# STEP 2: Discover all applications
+# ===========================================
+Write-Host "Discovering applications..." -ForegroundColor Yellow
+
 $remotes = & "$PSScriptRoot\utils-get-remotes.ps1"
 
 # Build list of all applications to install (hosts + remotes)
 $hostPath = Join-Path $PSScriptRoot "..\host"
 $hostWCPath = Join-Path $PSScriptRoot "..\host-webcomponent"
 
-# Create array of applications to install
-$applications = @(
-    [PSCustomObject]@{ Name = "host"; Path = $hostPath },
-    [PSCustomObject]@{ Name = "host-webcomponent"; Path = $hostWCPath }
-)
+$applications = @()
 
-# Add all remotes to the applications array
+# Add hosts
+if (Test-Path $hostPath) {
+    $applications += [PSCustomObject]@{ Name = "host"; Path = (Resolve-Path $hostPath).Path }
+}
+if (Test-Path $hostWCPath) {
+    $applications += [PSCustomObject]@{ Name = "host-webcomponent"; Path = (Resolve-Path $hostWCPath).Path }
+}
+
+# Add all remotes
 if ($remotes) {
     foreach ($remote in $remotes) {
-        $applications += [PSCustomObject]@{ Name = $remote.Name; Path = $remote.Path }
+        if (Test-Path $remote.Path) {
+            $applications += [PSCustomObject]@{ Name = $remote.Name; Path = $remote.Path }
+        }
     }
 }
 
-# Count total applications
-$totalApps = ($applications | Measure-Object).Count
+$totalApps = @($applications).Count
+
+if ($totalApps -eq 0) {
+    Write-Host "ERROR: No applications found to install" -ForegroundColor Red
+    exit 1
+}
 
 Write-Host ""
 Write-Host "Will install dependencies for $totalApps applications:" -ForegroundColor Green
 foreach ($app in $applications) {
     Write-Host "  - $($app.Name)" -ForegroundColor White
 }
-
 Write-Host ""
+
+# ===========================================
+# STEP 3: Start parallel npm install jobs
+# ===========================================
 Write-Host "Starting parallel installations..." -ForegroundColor Cyan
 Write-Host ""
 
 $startTime = Get-Date
 $jobs = @()
 
-# Start installation job for each application
 foreach ($app in $applications) {
-    # Validate application path exists
-    if (-not (Test-Path $app.Path)) {
-        Write-Host "WARNING: Path not found for $($app.Name): $($app.Path)" -ForegroundColor Yellow
-        continue
-    }
+    Write-Host "  Starting: $($app.Name)" -ForegroundColor Yellow
     
-    Write-Host "  Queuing install: $($app.Name)" -ForegroundColor Yellow
-    
-    # Start installation job
+    # Start npm install as a PowerShell background job
     $job = Start-Job -ScriptBlock {
-        param($appPath, $appName)
-        
+        param($appPath)
         Set-Location $appPath
-        
-        # Run npm install and capture output
-        $installOutput = npm install 2>&1
-        $installExitCode = $LASTEXITCODE
-        
-        # Return result
-        @{
-            Output = $installOutput
-            ExitCode = $installExitCode
-        }
-    } -ArgumentList $app.Path, $app.Name -Name "Install-$($app.Name)"
+        npm install 2>&1
+        exit $LASTEXITCODE
+    } -ArgumentList $app.Path
     
-    $jobs += $job
+    $jobs += [PSCustomObject]@{
+        Name = $app.Name
+        Path = $app.Path
+        Job = $job
+    }
 }
 
 Write-Host ""
-Write-Host "Waiting for all installations to complete..." -ForegroundColor Cyan
-
-# Wait for all jobs to finish
-$jobs | Wait-Job | Out-Null
-
-Write-Host ""
-Write-Host "Verifying installations..." -ForegroundColor Cyan
+Write-Host "Waiting for installations to complete..." -ForegroundColor Cyan
+Write-Host "(Checking progress every 3 seconds)" -ForegroundColor DarkGray
 Write-Host ""
 
-# Collect and verify results
+# ===========================================
+# STEP 4: Monitor progress and wait for jobs
+# ===========================================
 $results = @()
+$completedJobs = @{}
 
-foreach ($job in $jobs) {
-    # Extract app name from job name (format: "Install-AppName")
-    $appName = $job.Name -replace '^Install-', ''
+# Monitor loop - show progress while jobs are running
+while ($true) {
+    $runningCount = 0
+    $completedCount = 0
+    $statusLine = @()
     
-    Write-Host "Checking: $appName" -ForegroundColor White
-    
-    # Get job result
-    $jobResult = Receive-Job $job -ErrorAction SilentlyContinue
-    
-    # Find the corresponding application to get its path
-    $app = $applications | Where-Object { $_.Name -eq $appName } | Select-Object -First 1
-    
-    if (-not $app) {
-        Write-Host "  Status: ERROR (Application not found in list)" -ForegroundColor Red
-        continue
+    foreach ($item in $jobs) {
+        $jobState = $item.Job.State
+        
+        if ($jobState -eq "Running") {
+            $runningCount++
+            $statusLine += "$($item.Name)[...]"
+        }
+        elseif ($jobState -eq "Completed" -or $jobState -eq "Failed") {
+            if (-not $completedJobs.ContainsKey($item.Name)) {
+                # Job just completed - process it
+                $completedJobs[$item.Name] = $true
+                
+                $output = Receive-Job -Job $item.Job
+                $nodeModulesPath = Join-Path $item.Path "node_modules"
+                $success = Test-Path $nodeModulesPath
+                
+                $failureReason = ""
+                if (-not $success) {
+                    $failureReason = "node_modules not created"
+                }
+                
+                # Show result
+                if ($success) {
+                    Write-Host "  [OK] $($item.Name)" -ForegroundColor Green
+                }
+                else {
+                    Write-Host "  [FAIL] $($item.Name) - $failureReason" -ForegroundColor Red
+                    if ($output) {
+                        $lastLines = ($output | Out-String).Split("`n") | Select-Object -Last 5
+                        foreach ($line in $lastLines) {
+                            if ($line.Trim()) {
+                                Write-Host "    $line" -ForegroundColor DarkRed
+                            }
+                        }
+                    }
+                }
+                
+                $results += [PSCustomObject]@{
+                    Name = $item.Name
+                    Success = $success
+                    FailureReason = $failureReason
+                }
+                
+                Remove-Job -Job $item.Job -Force
+            }
+            $completedCount++
+        }
     }
     
-    # Path to node_modules (this is what we verify to confirm installation)
-    $nodeModulesPath = Join-Path $app.Path "node_modules"
-    
-    # Verify installation success by checking if node_modules exists
-    $installSuccess = $false
-    
-    if ($job.State -ne "Completed") {
-        Write-Host "  Status: FAILED (Job state: $($job.State))" -ForegroundColor Red
-    }
-    elseif (-not (Test-Path $nodeModulesPath)) {
-        Write-Host "  Status: FAILED (node_modules not found)" -ForegroundColor Red
-    }
-    else {
-        $installSuccess = $true
-        Write-Host "  Status: SUCCESS (node_modules created)" -ForegroundColor Green
+    # Exit loop when all jobs are done
+    if ($completedCount -eq $totalApps) {
+        break
     }
     
-    # Store result
-    $results += [PSCustomObject]@{
-        Name = $appName
-        Success = $installSuccess
-        ExitCode = if ($jobResult) { $jobResult.ExitCode } else { -1 }
-        Output = if ($jobResult) { $jobResult.Output } else { @() }
+    # Show progress status
+    if ($runningCount -gt 0) {
+        $elapsed = [math]::Round(((Get-Date) - $startTime).TotalSeconds, 0)
+        Write-Host "  [$elapsed`s] Running: $($statusLine -join ', ')" -ForegroundColor DarkGray
     }
+    
+    Start-Sleep -Seconds 3
 }
-
-# Cleanup jobs
-Write-Host ""
-Write-Host "Cleaning up installation jobs..." -ForegroundColor DarkGray
-$jobs | Remove-Job -Force
 
 $endTime = Get-Date
 $totalDuration = ($endTime - $startTime).TotalSeconds
 
-# Count successes and failures
-$successCount = 0
-$failureCount = 0
+# ===========================================
+# STEP 5: Display summary
+# ===========================================
+$successCount = @($results | Where-Object { $_.Success }).Count
+$failureCount = @($results | Where-Object { -not $_.Success }).Count
 
-foreach ($result in $results) {
-    if ($result.Success) {
-        $successCount++
-    } else {
-        $failureCount++
-    }
-}
-
-$totalCount = ($results | Measure-Object).Count
-
-# Display summary
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "Installation Results" -ForegroundColor Cyan
+Write-Host "Installation Summary" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
-
-foreach ($result in $results) {
-    if ($result.Success) {
-        Write-Host "[OK] $($result.Name)" -ForegroundColor Green
-    }
-    else {
-        Write-Host "[FAIL] $($result.Name)" -ForegroundColor Red
-        
-        # Show error output if available
-        $outputCount = ($result.Output | Measure-Object).Count
-        if ($result.Output -and $outputCount -gt 0) {
-            Write-Host "  Error output (last 10 lines):" -ForegroundColor DarkRed
-            $errorLines = $result.Output | Select-Object -Last 10
-            foreach ($line in $errorLines) {
-                Write-Host "    $line" -ForegroundColor DarkRed
-            }
-        }
-    }
-}
-
-Write-Host ""
-Write-Host "--------------------------------------------" -ForegroundColor Cyan
 
 if ($failureCount -eq 0) {
-    Write-Host "SUCCESS: All $totalCount installations completed in $([math]::Round($totalDuration, 1))s" -ForegroundColor Green
+    Write-Host "SUCCESS: All $totalApps installations completed in $([math]::Round($totalDuration, 1))s" -ForegroundColor Green
     Write-Host ""
     exit 0
 }
 else {
-    Write-Host "FAILED: $failureCount/$totalCount installations failed in $([math]::Round($totalDuration, 1))s" -ForegroundColor Red
+    Write-Host "FAILED: $failureCount of $totalApps installations failed" -ForegroundColor Red
     Write-Host ""
     Write-Host "Failed applications:" -ForegroundColor Yellow
     foreach ($result in $results) {
         if (-not $result.Success) {
-            Write-Host "  - $($result.Name)" -ForegroundColor DarkYellow
+            Write-Host "  - $($result.Name): $($result.FailureReason)" -ForegroundColor DarkYellow
         }
     }
     Write-Host ""

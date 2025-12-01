@@ -39,7 +39,7 @@ export const Header = ({
           sx={{ flexGrow: 0, mr: 4, cursor: "pointer", fontWeight: 700 }}
           onClick={() => handleNavigation("/")}
         >
-          ModuleFed Store 44
+          ModuleFed Store 55
         </Typography>
 
         <Box sx={{ flexGrow: 1, display: "flex", gap: 2 }}>

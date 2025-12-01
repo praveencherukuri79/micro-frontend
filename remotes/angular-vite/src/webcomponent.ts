@@ -104,8 +104,8 @@ class AngularWebComponent extends HTMLElement {
         hostElement: this.mountPoint,
       });
 
-      // Set initial theme
-      this.componentRef.instance.initialTheme = this.themeMode;
+      // Set initial theme via the @Input setter
+      this.componentRef.instance.theme = this.themeMode;
 
       // Attach to Angular change detection
       applicationRef.attachView(this.componentRef.hostView);

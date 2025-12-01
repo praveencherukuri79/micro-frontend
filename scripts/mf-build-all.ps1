@@ -13,6 +13,9 @@
     .\scripts\mf-build-all.ps1
 #>
 
+# Stop on any error
+$ErrorActionPreference = "Stop"
+
 # Import Module Federation build utilities
 . "$PSScriptRoot\utils-build-mf.ps1"
 

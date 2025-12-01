@@ -13,6 +13,9 @@
     .\scripts\wc-build-all.ps1
 #>
 
+# Stop on any error
+$ErrorActionPreference = "Stop"
+
 # Import Web Component build utilities
 . "$PSScriptRoot\utils-build-wc.ps1"
 

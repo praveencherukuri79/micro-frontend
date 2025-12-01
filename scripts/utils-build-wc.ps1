@@ -3,170 +3,206 @@
     Utility functions for Web Component parallel builds
 
 .DESCRIPTION
-    Provides reusable build execution for Web Component builds
-    Handles parallel job execution, error detection, and result reporting
+    Provides reusable build functions for Web Components
+    - Runs builds in parallel using background processes
+    - Properly inherits PATH (no environment issues)
+    - Verifies build outputs exist
+    - Returns clear success/failure status
 #>
 
 function Build-AllWebComponents {
+    <#
+    .SYNOPSIS
+        Build all Web Components in parallel
+    
+    .PARAMETER Remotes
+        Array of remote objects from utils-get-remotes.ps1
+    
+    .OUTPUTS
+        Hashtable with Results array and TotalDuration
+    #>
     param(
         [Parameter(Mandatory = $true)]
-        [array]$Remotes  # Array of remote objects from utils-get-remotes.ps1
+        [array]$Remotes
     )
     
+    $remoteCount = @($Remotes).Count
+    
     Write-Host ""
-    Write-Host "Starting parallel builds for $(@($Remotes).Count) Web Components..." -ForegroundColor Cyan
+    Write-Host "Building $remoteCount Web Components in parallel..." -ForegroundColor Cyan
     Write-Host ""
     
-    $jobs = @()
+    # ------------------------------------------
+    # Validate npm is available
+    # ------------------------------------------
+    try {
+        $null = npm --version 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "npm not found" }
+    }
+    catch {
+        Write-Host "ERROR: npm is not available in PATH" -ForegroundColor Red
+        return @{
+            Results = @()
+            TotalDuration = 0
+            Success = $false
+        }
+    }
+    
     $startTime = Get-Date
+    $jobs = @()
     
-    # Start parallel build jobs for each remote
+    # ------------------------------------------
+    # Start parallel builds using PowerShell jobs
+    # ------------------------------------------
     foreach ($remote in $Remotes) {
-        Write-Host "  Queuing build: $($remote.Name)" -ForegroundColor Yellow
+        Write-Host "  Queuing: $($remote.Name)" -ForegroundColor Yellow
         
-        # CRITICAL: Delete old dist-webcomponent folder to prevent stale builds
+        # Delete old dist-webcomponent folder to prevent stale builds
         $distPath = Join-Path $remote.Path "dist-webcomponent"
         if (Test-Path $distPath) {
-            Write-Host "    Deleting old dist-webcomponent folder: $distPath" -ForegroundColor DarkYellow
             Remove-Item $distPath -Recurse -Force -ErrorAction SilentlyContinue
         }
         
-        # Start build job
+        # Start build as a PowerShell background job
         $job = Start-Job -ScriptBlock {
-            param($remotePath, $remoteName)
-            
-            Set-Location $remotePath
-            
-            # Run npm build:webcomponent and capture output
-            $buildOutput = npm run build:webcomponent 2>&1
-            $buildExitCode = $LASTEXITCODE
-            
-            # Return result
-            @{
-                Output = $buildOutput
-                ExitCode = $buildExitCode
-            }
-        } -ArgumentList $remote.Path, $remote.Name -Name "WC-Build-$($remote.Name)"
+            param($buildPath)
+            Set-Location $buildPath
+            npm run build:webcomponent 2>&1
+            exit $LASTEXITCODE
+        } -ArgumentList $remote.Path
         
-        $jobs += $job
+        $jobs += [PSCustomObject]@{
+            Name = $remote.Name
+            Path = $remote.Path
+            Job = $job
+        }
     }
     
     Write-Host ""
     Write-Host "Waiting for builds to complete..." -ForegroundColor Cyan
+    Write-Host "(Checking progress every 3 seconds)" -ForegroundColor DarkGray
     Write-Host ""
     
-    # Wait for all jobs to finish with intermediate status updates
-    $completedJobs = @()
-    $totalJobs = ($jobs | Measure-Object).Count
-    
-    while (($completedJobs | Measure-Object).Count -lt $totalJobs) {
-        # Get currently completed jobs
-        $currentlyCompleted = @($jobs | Where-Object { $_.State -ne "Running" })
-        
-        # Check if any new jobs completed since last check
-        $currentCompletedCount = ($currentlyCompleted | Measure-Object).Count
-        $previousCompletedCount = ($completedJobs | Measure-Object).Count
-        
-        if ($currentCompletedCount -gt $previousCompletedCount) {
-            # Find which jobs just completed
-            $newlyCompleted = $currentlyCompleted | Where-Object { $completedJobs -notcontains $_ }
-            
-            foreach ($job in $newlyCompleted) {
-                # Extract remote name from job name (format: "WC-Build-RemoteName")
-                $remoteName = $job.Name -replace '^WC-Build-', ''
-                Write-Host "  COMPLETED: $remoteName" -ForegroundColor Green
-            }
-            
-            # Update completed jobs list
-            $completedJobs = $currentlyCompleted
-            
-            # Show progress summary
-            $currentCompletedCount = ($completedJobs | Measure-Object).Count
-            $pending = $totalJobs - $currentCompletedCount
-            Write-Host "  Progress: $currentCompletedCount/$totalJobs completed, $pending pending..." -ForegroundColor DarkYellow
-            Write-Host ""
-        }
-        
-        # Sleep briefly before checking again
-        Start-Sleep -Milliseconds 500
-    }
-    
-    Write-Host "All builds finished!" -ForegroundColor Green
-    Write-Host ""
-    
-    # Collect and verify results
+    # ------------------------------------------
+    # Monitor progress and wait for jobs
+    # ------------------------------------------
     $results = @()
-    foreach ($job in $jobs) {
-        # Extract remote name from job name (format: "WC-Build-RemoteName")
-        $remoteName = $job.Name -replace '^WC-Build-', ''
-        
-        Write-Host ""
-        Write-Host "Checking result for: $remoteName" -ForegroundColor White
-        
-        # Get job output
-        $jobResult = Receive-Job $job -ErrorAction SilentlyContinue
-        
-        # Find the corresponding remote object to get its path
-        $remote = $Remotes | Where-Object { $_.Name -eq $remoteName } | Select-Object -First 1
-        $distPath = Join-Path $remote.Path "dist-webcomponent"
-        
-        # Verify build success by checking if dist-webcomponent folder exists and has files
-        $buildSuccess = $false
-        $failureReason = ""
-        
-        if ($job.State -ne "Completed") {
-            $failureReason = "Job failed with state: $($job.State)"
-            Write-Host "  Status: FAILED (Job state: $($job.State))" -ForegroundColor Red
-        }
-        elseif (-not (Test-Path $distPath)) {
-            $failureReason = "dist-webcomponent folder not created: $distPath"
-            Write-Host "  Status: FAILED (No dist-webcomponent folder)" -ForegroundColor Red
-        }
-        else {
-            # Check if dist-webcomponent folder has files
-            $distFiles = Get-ChildItem -Path $distPath -File -Recurse -ErrorAction SilentlyContinue
-            if (-not $distFiles -or @($distFiles).Count -eq 0) {
-                $failureReason = "dist-webcomponent folder is empty"
-                Write-Host "  Status: FAILED (Empty dist-webcomponent folder)" -ForegroundColor Red
-            }
-            else {
-                $buildSuccess = $true
-                Write-Host "  Status: SUCCESS ($(@($distFiles).Count) files generated)" -ForegroundColor Green
-            }
-        }
-        
-        # Store result
-        $results += [PSCustomObject]@{
-            Name = $remoteName
-            Success = $buildSuccess
-            FailureReason = $failureReason
-            Output = if ($jobResult) { $jobResult.Output } else { @() }
-            ExitCode = if ($jobResult) { $jobResult.ExitCode } else { -1 }
-        }
-    }
+    $completedJobs = @{}
     
-    # Cleanup jobs
-    Write-Host ""
-    Write-Host "Cleaning up build jobs..." -ForegroundColor DarkGray
-    $jobs | Remove-Job -Force
+    while ($true) {
+        $runningCount = 0
+        $completedCount = 0
+        $statusLine = @()
+        
+        foreach ($item in $jobs) {
+            $jobState = $item.Job.State
+            
+            if ($jobState -eq "Running") {
+                $runningCount++
+                $statusLine += "$($item.Name)[...]"
+            }
+            elseif ($jobState -eq "Completed" -or $jobState -eq "Failed") {
+                if (-not $completedJobs.ContainsKey($item.Name)) {
+                    # Job just completed - process it
+                    $completedJobs[$item.Name] = $true
+                    
+                    $output = Receive-Job -Job $item.Job
+                    $distPath = Join-Path $item.Path "dist-webcomponent"
+                    
+                    # Verify success: dist-webcomponent folder exists with files
+                    $success = $false
+                    $failureReason = ""
+                    
+                    if (-not (Test-Path $distPath)) {
+                        $failureReason = "dist-webcomponent folder not created"
+                    }
+                    else {
+                        $distFiles = @(Get-ChildItem -Path $distPath -File -Recurse -ErrorAction SilentlyContinue)
+                        if (@($distFiles).Count -eq 0) {
+                            $failureReason = "dist-webcomponent folder is empty"
+                        }
+                        else {
+                            $success = $true
+                        }
+                    }
+                    
+                    # Display result immediately
+                    if ($success) {
+                        Write-Host "  [OK] $($item.Name)" -ForegroundColor Green
+                    }
+                    else {
+                        Write-Host "  [FAIL] $($item.Name) - $failureReason" -ForegroundColor Red
+                        if ($output) {
+                            $lastLines = ($output | Out-String).Split("`n") | Select-Object -Last 5
+                            foreach ($line in $lastLines) {
+                                if ($line.Trim()) {
+                                    Write-Host "    $line" -ForegroundColor DarkRed
+                                }
+                            }
+                        }
+                    }
+                    
+                    $results += [PSCustomObject]@{
+                        Name = $item.Name
+                        Success = $success
+                        FailureReason = $failureReason
+                        ExitCode = 0
+                        Output = $output
+                    }
+                    
+                    Remove-Job -Job $item.Job -Force
+                }
+                $completedCount++
+            }
+        }
+        
+        # Exit loop when all jobs are done
+        if ($completedCount -eq $remoteCount) {
+            break
+        }
+        
+        # Show progress status
+        if ($runningCount -gt 0) {
+            $elapsed = [math]::Round(((Get-Date) - $startTime).TotalSeconds, 0)
+            Write-Host "  [$elapsed`s] Building: $($statusLine -join ', ')" -ForegroundColor DarkGray
+        }
+        
+        Start-Sleep -Seconds 3
+    }
     
     $endTime = Get-Date
     $totalDuration = ($endTime - $startTime).TotalSeconds
     
-    # Return results
+    Write-Host ""
+    Write-Host "All builds finished in $([math]::Round($totalDuration, 1))s" -ForegroundColor Cyan
+    
     return @{
         Results = $results
         TotalDuration = $totalDuration
     }
 }
 
+
 function Show-WCBuildResults {
+    <#
+    .SYNOPSIS
+        Display build results summary
+    
+    .PARAMETER Results
+        Array of build result objects from Build-AllWebComponents
+    
+    .PARAMETER TotalDuration
+        Total build duration in seconds
+    
+    .OUTPUTS
+        $true if all builds succeeded, $false otherwise
+    #>
     param(
         [Parameter(Mandatory = $true)]
-        [array]$Results,  # Array of build result objects from Build-AllWebComponents
+        [array]$Results,
         
         [Parameter(Mandatory = $true)]
-        [double]$TotalDuration  # Total build duration in seconds
+        [double]$TotalDuration
     )
     
     Write-Host ""
@@ -175,21 +211,11 @@ function Show-WCBuildResults {
     Write-Host "============================================" -ForegroundColor Cyan
     Write-Host ""
     
-    # Count successes and failures
-    $successCount = 0
-    $failureCount = 0
-    
-    foreach ($result in $Results) {
-        if ($result.Success) {
-            $successCount++
-        } else {
-            $failureCount++
-        }
-    }
-    
+    $successCount = @($Results | Where-Object { $_.Success }).Count
+    $failureCount = @($Results | Where-Object { -not $_.Success }).Count
     $totalCount = @($Results).Count
     
-    # Display individual results
+    # Display each result
     foreach ($result in $Results) {
         if ($result.Success) {
             Write-Host "[OK] $($result.Name)" -ForegroundColor Green
@@ -198,11 +224,11 @@ function Show-WCBuildResults {
             Write-Host "[FAIL] $($result.Name)" -ForegroundColor Red
             Write-Host "  Reason: $($result.FailureReason)" -ForegroundColor DarkRed
             
-            # Show last 10 lines of error output
+            # Show last 10 lines of output for failed builds
             if ($result.Output -and @($result.Output).Count -gt 0) {
-                Write-Host "  Error output (last 10 lines):" -ForegroundColor DarkRed
-                $errorLines = $result.Output | Select-Object -Last 10
-                foreach ($line in $errorLines) {
+                Write-Host "  Build output (last 10 lines):" -ForegroundColor DarkRed
+                $lastLines = $result.Output | Select-Object -Last 10
+                foreach ($line in $lastLines) {
                     Write-Host "    $line" -ForegroundColor DarkRed
                 }
             }
@@ -218,15 +244,12 @@ function Show-WCBuildResults {
         return $true
     }
     else {
-        Write-Host "FAILED: $failureCount/$totalCount web component builds failed in $([math]::Round($TotalDuration, 1))s" -ForegroundColor Red
+        Write-Host "FAILED: $failureCount of $totalCount builds failed" -ForegroundColor Red
         Write-Host ""
         Write-Host "Failed web components:" -ForegroundColor Yellow
-        foreach ($result in $Results) {
-            if (-not $result.Success) {
-                Write-Host "  - $($result.Name): $($result.FailureReason)" -ForegroundColor DarkYellow
-            }
+        foreach ($result in $Results | Where-Object { -not $_.Success }) {
+            Write-Host "  - $($result.Name): $($result.FailureReason)" -ForegroundColor DarkYellow
         }
         return $false
     }
 }
-

@@ -20,11 +20,17 @@
     .\scripts\wc-start-quick.ps1
 #>
 
+# Stop on any error
+$ErrorActionPreference = "Stop"
+
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "Web Components: Quick Start" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
+
+# Clean up WC port only (5010) - won't affect MF servers on 5000-5006
+& "$PSScriptRoot\utils-kill-ports.ps1" -Context WC
 
 # Path to host-webcomponent directory
 $hostPath = Join-Path $PSScriptRoot "..\host-webcomponent"
@@ -41,16 +47,39 @@ if (-not (Test-Path $hostPath)) {
 }
 Write-Host "   OK: Directory found" -ForegroundColor Green
 
-# Validation 2: Check if dependencies are installed
+# Validation 2: Check if dependencies are installed (host + remotes)
 Write-Host "2. Checking dependencies (node_modules)..." -ForegroundColor White
-# Path to node_modules (derived from host path)
-$nodeModulesPath = Join-Path $hostPath "node_modules"
 
+$missingDeps = @()
+
+# Check host-webcomponent
+$nodeModulesPath = Join-Path $hostPath "node_modules"
 if (-not (Test-Path $nodeModulesPath)) {
-    Write-Host "   ERROR: Dependencies not installed (node_modules not found)" -ForegroundColor Red
+    $missingDeps += "host-webcomponent"
+}
+
+# Check all remotes
+$remotes = & "$PSScriptRoot\utils-get-remotes.ps1" 2>$null
+if ($remotes) {
+    foreach ($remote in $remotes) {
+        $remoteNodeModules = Join-Path $remote.Path "node_modules"
+        if (-not (Test-Path $remoteNodeModules)) {
+            $missingDeps += $remote.Name
+        }
+    }
+}
+
+if (@($missingDeps).Count -gt 0) {
+    Write-Host "   ERROR: Dependencies not installed in:" -ForegroundColor Red
+    foreach ($missing in $missingDeps) {
+        Write-Host "     - $missing" -ForegroundColor Red
+    }
     Write-Host ""
     Write-Host "Run the following first:" -ForegroundColor Yellow
     Write-Host "  .\scripts\utils-install-all.ps1" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Or use full workflow (installs automatically):" -ForegroundColor Yellow
+    Write-Host "  .\scripts\wc-start.ps1" -ForegroundColor White
     Write-Host ""
     exit 1
 }
@@ -81,7 +110,7 @@ Write-Host "4. Checking widget files..." -ForegroundColor White
 $widgetFiles = @(Get-ChildItem -Path $widgetsDir -Filter "*.js" -ErrorAction SilentlyContinue)
 
 # Count widget files
-$widgetCount = $widgetFiles.Count
+$widgetCount = @($widgetFiles).Count
 
 if ($widgetCount -eq 0) {
     Write-Host "   ERROR: No widget JavaScript files found in $widgetsDir" -ForegroundColor Red

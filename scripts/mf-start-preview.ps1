@@ -4,10 +4,11 @@
 
 .DESCRIPTION
     Complete workflow for Module Federation preview:
-    1. Cleans up ports (kills existing Node processes)
-    2. Builds all remotes in parallel
-    3. Starts remotes in preview mode (serves production builds)
-    4. Starts host in dev mode
+    1. Checks and installs dependencies (if missing)
+    2. Cleans up ports (kills existing Node processes)
+    3. Builds all remotes in parallel
+    4. Starts remotes in preview mode (serves production builds)
+    5. Starts host in dev mode
     
     This is the RECOMMENDED mode for development and testing
 
@@ -15,16 +16,73 @@
     .\scripts\mf-start-preview.ps1
 #>
 
+# Stop on any error
+$ErrorActionPreference = "Stop"
+
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "Module Federation: Build and Preview" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Step 1: Clean up ports
-Write-Host "Step 1 of 3: Cleaning up ports..." -ForegroundColor Yellow
+# Step 0: Check dependencies
+Write-Host "Checking dependencies..." -ForegroundColor Yellow
+Write-Host ""
 
-& "$PSScriptRoot\utils-kill-ports.ps1"
+# Get all remotes to check their dependencies
+$remotes = & "$PSScriptRoot\utils-get-remotes.ps1"
+$hostPath = Join-Path $PSScriptRoot "..\host"
+
+# Check if any project is missing node_modules
+$missingDeps = @()
+
+# Check host
+$hostNodeModules = Join-Path $hostPath "node_modules"
+if (-not (Test-Path $hostNodeModules)) {
+    $missingDeps += "host"
+}
+
+# Check all remotes
+if ($remotes) {
+    foreach ($remote in $remotes) {
+        $remoteNodeModules = Join-Path $remote.Path "node_modules"
+        if (-not (Test-Path $remoteNodeModules)) {
+            $missingDeps += $remote.Name
+        }
+    }
+}
+
+# If any dependencies are missing, install them
+if (@($missingDeps).Count -gt 0) {
+    Write-Host "Missing dependencies detected in:" -ForegroundColor Yellow
+    foreach ($missing in $missingDeps) {
+        Write-Host "  - $missing" -ForegroundColor DarkYellow
+    }
+    Write-Host ""
+    Write-Host "Installing dependencies for all projects..." -ForegroundColor Cyan
+    Write-Host ""
+    
+    & "$PSScriptRoot\utils-install-all.ps1"
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "ERROR: Failed to install dependencies" -ForegroundColor Red
+        Write-Host ""
+        exit 1
+    }
+    
+    Write-Host ""
+    Write-Host "Dependencies installed successfully!" -ForegroundColor Green
+    Write-Host ""
+} else {
+    Write-Host "All dependencies are installed." -ForegroundColor Green
+    Write-Host ""
+}
+
+# Step 1: Clean up MF ports only (5000-5006)
+Write-Host "Step 1 of 3: Cleaning up Module Federation ports..." -ForegroundColor Yellow
+
+& "$PSScriptRoot\utils-kill-ports.ps1" -Context MF
 
 Write-Host "Port cleanup completed" -ForegroundColor Green
 
