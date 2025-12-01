@@ -26,9 +26,15 @@ Write-Host ""
 # ===========================================
 # STEP 1: Define and prepare directories
 # ===========================================
-$widgetsDir = Join-Path $PSScriptRoot "..\widgets"
-$publicDir = Join-Path $PSScriptRoot "..\host-webcomponent\public"
-$publicWidgetsDir = Join-Path $publicDir "widgets"
+$widgetsDir = Join-Path $PSScriptRoot "..\..\widgets"
+
+# React WC host
+$publicDirReact = Join-Path $PSScriptRoot "..\..\host-react-wc\public"
+$publicWidgetsDirReact = Join-Path $publicDirReact "widgets"
+
+# Angular WC host
+$publicDirAngular = Join-Path $PSScriptRoot "..\..\host-angular-wc\public"
+$publicWidgetsDirAngular = Join-Path $publicDirAngular "widgets"
 
 Write-Host "Preparing directories..." -ForegroundColor Yellow
 
@@ -38,23 +44,37 @@ if (Test-Path $widgetsDir) {
     Remove-Item $widgetsDir -Recurse -Force
 }
 
-if (Test-Path $publicWidgetsDir) {
-    Write-Host "  Removing old public widgets directory" -ForegroundColor DarkYellow
-    Remove-Item $publicWidgetsDir -Recurse -Force
+# Clean React WC host widgets
+if (Test-Path $publicWidgetsDirReact) {
+    Write-Host "  Removing old React WC host widgets directory" -ForegroundColor DarkYellow
+    Remove-Item $publicWidgetsDirReact -Recurse -Force
+}
+
+# Clean Angular WC host widgets
+if (Test-Path $publicWidgetsDirAngular) {
+    Write-Host "  Removing old Angular WC host widgets directory" -ForegroundColor DarkYellow
+    Remove-Item $publicWidgetsDirAngular -Recurse -Force
 }
 
 # Create fresh directories
 Write-Host "  Creating widgets directory" -ForegroundColor DarkGray
 New-Item -ItemType Directory -Path $widgetsDir -Force | Out-Null
 
-# Ensure public directory exists before creating widgets subdirectory
-if (-not (Test-Path $publicDir)) {
-    Write-Host "  Creating public directory" -ForegroundColor DarkGray
-    New-Item -ItemType Directory -Path $publicDir -Force | Out-Null
+# Ensure React WC host public directory exists
+if (-not (Test-Path $publicDirReact)) {
+    Write-Host "  Creating React WC host public directory" -ForegroundColor DarkGray
+    New-Item -ItemType Directory -Path $publicDirReact -Force | Out-Null
 }
+Write-Host "  Creating React WC host widgets directory" -ForegroundColor DarkGray
+New-Item -ItemType Directory -Path $publicWidgetsDirReact -Force | Out-Null
 
-Write-Host "  Creating public widgets directory" -ForegroundColor DarkGray
-New-Item -ItemType Directory -Path $publicWidgetsDir -Force | Out-Null
+# Ensure Angular WC host public directory exists
+if (-not (Test-Path $publicDirAngular)) {
+    Write-Host "  Creating Angular WC host public directory" -ForegroundColor DarkGray
+    New-Item -ItemType Directory -Path $publicDirAngular -Force | Out-Null
+}
+Write-Host "  Creating Angular WC host widgets directory" -ForegroundColor DarkGray
+New-Item -ItemType Directory -Path $publicWidgetsDirAngular -Force | Out-Null
 
 Write-Host ""
 
@@ -63,7 +83,7 @@ Write-Host ""
 # ===========================================
 Write-Host "Discovering remotes..." -ForegroundColor Yellow
 
-$remotes = & "$PSScriptRoot\utils-get-remotes.ps1"
+$remotes = & "$PSScriptRoot\..\utils\utils-get-remotes.ps1"
 
 if (-not $remotes -or @($remotes).Count -eq 0) {
     Write-Host "ERROR: No remotes found" -ForegroundColor Red
@@ -213,9 +233,9 @@ if (@($copyErrors).Count -gt 0) {
 Write-Host ""
 
 # ===========================================
-# STEP 4: Copy to public widgets directory
+# STEP 4: Copy to public widgets directories
 # ===========================================
-Write-Host "Copying to host-webcomponent/public/widgets/..." -ForegroundColor Yellow
+Write-Host "Copying to WC host public/widgets directories..." -ForegroundColor Yellow
 
 try {
     $widgetFiles = Get-ChildItem -Path $widgetsDir -Filter "*.js" -ErrorAction Stop
@@ -226,8 +246,13 @@ try {
         exit 1
     }
     
-    Copy-Item "$widgetsDir\*" $publicWidgetsDir -Force
-    Write-Host "  [OK] Copied $widgetCount widget(s) to public/widgets/" -ForegroundColor Green
+    # Copy to React WC host
+    Copy-Item "$widgetsDir\*" $publicWidgetsDirReact -Force
+    Write-Host "  [OK] Copied $widgetCount widget(s) to host-react-wc/public/widgets/" -ForegroundColor Green
+    
+    # Copy to Angular WC host
+    Copy-Item "$widgetsDir\*" $publicWidgetsDirAngular -Force
+    Write-Host "  [OK] Copied $widgetCount widget(s) to host-angular-wc/public/widgets/" -ForegroundColor Green
 }
 catch {
     Write-Host "ERROR: Failed to copy widgets to public directory: $($_.Exception.Message)" -ForegroundColor Red
@@ -246,7 +271,8 @@ Write-Host "Successfully copied $copiedCount widget(s)" -ForegroundColor Green
 Write-Host ""
 Write-Host "Widget locations:" -ForegroundColor Yellow
 Write-Host "  Source: $widgetsDir" -ForegroundColor White
-Write-Host "  Public: $publicWidgetsDir" -ForegroundColor White
+Write-Host "  React WC Host: $publicWidgetsDirReact" -ForegroundColor White
+Write-Host "  Angular WC Host: $publicWidgetsDirAngular" -ForegroundColor White
 Write-Host ""
 
 exit 0

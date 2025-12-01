@@ -29,12 +29,12 @@ Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Clean up MF ports only (5000-5006) - won't affect WC host on 5010
-& "$PSScriptRoot\utils-kill-ports.ps1" -Context MF
+& "$PSScriptRoot\..\utils\utils-kill-ports.ps1" -Context MF
 Write-Host ""
 
 # Get all remotes from package.json metadata
 Write-Host "Discovering remotes..." -ForegroundColor Yellow
-$remotes = & "$PSScriptRoot\utils-get-remotes.ps1"
+$remotes = & "$PSScriptRoot\..\utils\utils-get-remotes.ps1"
 
 # Validate remotes were found
 $remoteCount = ($remotes | Measure-Object).Count
@@ -50,7 +50,7 @@ Write-Host ""
 
 # Validation 1: Check if dependencies are installed
 $missingDeps = @()
-$hostPath = Join-Path $PSScriptRoot "..\host"
+$hostPath = Join-Path $PSScriptRoot "..\..\host-react-mf"
 $hostNodeModules = Join-Path $hostPath "node_modules"
 
 Write-Host "Checking dependencies..." -ForegroundColor White
@@ -135,7 +135,7 @@ foreach ($remote in $remotes) {
 }
 
 # Start host application
-$hostPath = Join-Path $PSScriptRoot "..\host"
+$hostPath = Join-Path $PSScriptRoot "..\..\host-react-mf"
 
 Write-Host ""
 Write-Host "Starting: host on port 5000" -ForegroundColor Green

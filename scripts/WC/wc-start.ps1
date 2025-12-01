@@ -30,8 +30,8 @@ Write-Host "Checking dependencies..." -ForegroundColor Yellow
 Write-Host ""
 
 # Get all remotes to check their dependencies
-$remotes = & "$PSScriptRoot\utils-get-remotes.ps1"
-$hostWCPath = Join-Path $PSScriptRoot "..\host-webcomponent"
+$remotes = & "$PSScriptRoot\..\utils\utils-get-remotes.ps1"
+$hostWCPath = Join-Path $PSScriptRoot "..\..\host-react-wc"
 
 # Check if any project is missing node_modules
 $missingDeps = @()
@@ -62,7 +62,7 @@ if (@($missingDeps).Count -gt 0) {
     Write-Host "Installing dependencies for all projects..." -ForegroundColor Cyan
     Write-Host ""
     
-    & "$PSScriptRoot\utils-install-all.ps1"
+    & "$PSScriptRoot\..\utils\utils-install-all.ps1"
     
     if ($LASTEXITCODE -ne 0) {
         Write-Host ""
@@ -80,7 +80,7 @@ if (@($missingDeps).Count -gt 0) {
 }
 
 # Ensure required output directories exist
-$widgetsDir = Join-Path $PSScriptRoot "..\widgets"
+$widgetsDir = Join-Path $PSScriptRoot "..\..\widgets"
 $publicWidgetsDir = Join-Path $hostWCPath "public\widgets"
 
 if (-not (Test-Path $widgetsDir)) {
@@ -95,7 +95,7 @@ if (-not (Test-Path $publicWidgetsDir)) {
 
 # Step 0.5: Clean up WC port only (5010) - won't affect MF servers on 5000-5006
 Write-Host "Cleaning up Web Component port..." -ForegroundColor Yellow
-& "$PSScriptRoot\utils-kill-ports.ps1" -Context WC
+& "$PSScriptRoot\..\utils\utils-kill-ports.ps1" -Context WC
 
 # Step 1: Build all web components
 Write-Host "Step 1 of 3: Building all web components..." -ForegroundColor Yellow

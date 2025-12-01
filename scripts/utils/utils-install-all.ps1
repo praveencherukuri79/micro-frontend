@@ -52,17 +52,27 @@ Write-Host "Discovering applications..." -ForegroundColor Yellow
 $remotes = & "$PSScriptRoot\utils-get-remotes.ps1"
 
 # Build list of all applications to install (hosts + remotes)
-$hostPath = Join-Path $PSScriptRoot "..\host"
-$hostWCPath = Join-Path $PSScriptRoot "..\host-webcomponent"
+$hostReactMFPath = Join-Path $PSScriptRoot "..\..\host-react-mf"
+$hostReactWCPath = Join-Path $PSScriptRoot "..\..\host-react-wc"
+$hostAngularMFPath = Join-Path $PSScriptRoot "..\..\host-angular-mf"
+$hostAngularWCPath = Join-Path $PSScriptRoot "..\..\host-angular-wc"
 
 $applications = @()
 
-# Add hosts
-if (Test-Path $hostPath) {
-    $applications += [PSCustomObject]@{ Name = "host"; Path = (Resolve-Path $hostPath).Path }
+# Add React hosts
+if (Test-Path $hostReactMFPath) {
+    $applications += [PSCustomObject]@{ Name = "host-react-mf"; Path = (Resolve-Path $hostReactMFPath).Path }
 }
-if (Test-Path $hostWCPath) {
-    $applications += [PSCustomObject]@{ Name = "host-webcomponent"; Path = (Resolve-Path $hostWCPath).Path }
+if (Test-Path $hostReactWCPath) {
+    $applications += [PSCustomObject]@{ Name = "host-react-wc"; Path = (Resolve-Path $hostReactWCPath).Path }
+}
+
+# Add Angular hosts
+if (Test-Path $hostAngularMFPath) {
+    $applications += [PSCustomObject]@{ Name = "host-angular-mf"; Path = (Resolve-Path $hostAngularMFPath).Path }
+}
+if (Test-Path $hostAngularWCPath) {
+    $applications += [PSCustomObject]@{ Name = "host-angular-wc"; Path = (Resolve-Path $hostAngularWCPath).Path }
 }
 
 # Add all remotes

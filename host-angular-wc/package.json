@@ -1,0 +1,41 @@
+{
+  "name": "host-angular-wc",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "dev": "ng serve --port 5011",
+    "start": "ng serve --port 5011",
+    "build": "ng build",
+    "preview": "http-server dist/host-angular-wc -p 5011 --cors",
+    "watch": "ng build --watch --configuration development"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^17.3.0",
+    "@angular/common": "^17.3.0",
+    "@angular/compiler": "^17.3.0",
+    "@angular/core": "^17.3.0",
+    "@angular/elements": "^17.3.0",
+    "@angular/forms": "^17.3.0",
+    "@angular/platform-browser": "^17.3.0",
+    "@angular/platform-browser-dynamic": "^17.3.0",
+    "@angular/router": "^17.3.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zone.js": "~0.14.3"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^17.3.17",
+    "@angular/cli": "^17.3.17",
+    "@angular/compiler-cli": "^17.3.0",
+    "@types/jasmine": "~5.1.0",
+    "http-server": "^14.1.1",
+    "typescript": "~5.4.2"
+  },
+  "host": {
+    "type": "angular-wc",
+    "port": 5011,
+    "description": "Angular Web Component Host"
+  }
+}
+

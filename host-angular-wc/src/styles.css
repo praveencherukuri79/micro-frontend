@@ -1,0 +1,43 @@
+/* Global styles for Angular WC Host */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  line-height: 1.6;
+}
+
+:root {
+  --primary-color: #9c27b0;
+  --background-light: #ffffff;
+  --background-dark: #121212;
+  --text-light: #333333;
+  --text-dark: #ffffff;
+}
+
+body.dark-theme {
+  background-color: var(--background-dark);
+  color: var(--text-dark);
+}
+
+body.light-theme {
+  background-color: var(--background-light);
+  color: var(--text-light);
+}
+
+/* Web component container styles */
+.web-component-container {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading {
+  color: #666;
+  font-style: italic;
+}
+

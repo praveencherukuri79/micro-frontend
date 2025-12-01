@@ -30,10 +30,10 @@ Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Clean up WC port only (5010) - won't affect MF servers on 5000-5006
-& "$PSScriptRoot\utils-kill-ports.ps1" -Context WC
+& "$PSScriptRoot\..\utils\utils-kill-ports.ps1" -Context WC
 
-# Path to host-webcomponent directory
-$hostPath = Join-Path $PSScriptRoot "..\host-webcomponent"
+# Path to host-react-wc directory
+$hostPath = Join-Path $PSScriptRoot "..\..\host-react-wc"
 
 Write-Host "Validating prerequisites..." -ForegroundColor Yellow
 Write-Host ""
@@ -59,7 +59,7 @@ if (-not (Test-Path $nodeModulesPath)) {
 }
 
 # Check all remotes
-$remotes = & "$PSScriptRoot\utils-get-remotes.ps1" 2>$null
+$remotes = & "$PSScriptRoot\..\utils\utils-get-remotes.ps1" 2>$null
 if ($remotes) {
     foreach ($remote in $remotes) {
         $remoteNodeModules = Join-Path $remote.Path "node_modules"

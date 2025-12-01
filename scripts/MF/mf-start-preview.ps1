@@ -1,20 +1,19 @@
 <#
 .SYNOPSIS
-    Start Module Federation in watch mode (auto-rebuild)
+    Build and start Module Federation in preview mode
 
 .DESCRIPTION
-    Complete workflow for Module Federation watch mode:
+    Complete workflow for Module Federation preview:
     1. Checks and installs dependencies (if missing)
     2. Cleans up ports (kills existing Node processes)
-    3. Builds all remotes initially in parallel
-    4. Starts remotes in watch mode (auto-rebuild + preview server)
+    3. Builds all remotes in parallel
+    4. Starts remotes in preview mode (serves production builds)
     5. Starts host in dev mode
     
-    Files will automatically rebuild when changed
-    Useful for active development with production-like behavior
+    This is the RECOMMENDED mode for development and testing
 
 .EXAMPLE
-    .\scripts\mf-start-watch.ps1
+    .\scripts\mf-start-preview.ps1
 #>
 
 # Stop on any error
@@ -22,7 +21,7 @@ $ErrorActionPreference = "Stop"
 
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "Module Federation: Watch Mode" -ForegroundColor Cyan
+Write-Host "Module Federation: Build and Preview" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -31,8 +30,8 @@ Write-Host "Checking dependencies..." -ForegroundColor Yellow
 Write-Host ""
 
 # Get all remotes to check their dependencies
-$remotes = & "$PSScriptRoot\utils-get-remotes.ps1"
-$hostPath = Join-Path $PSScriptRoot "..\host"
+$remotes = & "$PSScriptRoot\..\utils\utils-get-remotes.ps1"
+$hostPath = Join-Path $PSScriptRoot "..\..\host-react-mf"
 
 # Check if any project is missing node_modules
 $missingDeps = @()
@@ -63,7 +62,7 @@ if (@($missingDeps).Count -gt 0) {
     Write-Host "Installing dependencies for all projects..." -ForegroundColor Cyan
     Write-Host ""
     
-    & "$PSScriptRoot\utils-install-all.ps1"
+    & "$PSScriptRoot\..\utils\utils-install-all.ps1"
     
     if ($LASTEXITCODE -ne 0) {
         Write-Host ""
@@ -83,49 +82,49 @@ if (@($missingDeps).Count -gt 0) {
 # Step 1: Clean up MF ports only (5000-5006)
 Write-Host "Step 1 of 3: Cleaning up Module Federation ports..." -ForegroundColor Yellow
 
-& "$PSScriptRoot\utils-kill-ports.ps1" -Context MF
+& "$PSScriptRoot\..\utils\utils-kill-ports.ps1" -Context MF
 
 Write-Host "Port cleanup completed" -ForegroundColor Green
 
-# Step 2: Initial build of all remotes
+# Step 2: Build all remotes
 Write-Host ""
-Write-Host "Step 2 of 3: Initial build of all remotes..." -ForegroundColor Yellow
+Write-Host "Step 2 of 3: Building all remotes..." -ForegroundColor Yellow
 Write-Host ""
 
 & "$PSScriptRoot\mf-build-all.ps1"
 
-# Check if initial build succeeded (verify exit code from build script)
+# Check if build succeeded (verify exit code from build script)
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
-    Write-Host "ERROR: Initial build failed (exit code: $LASTEXITCODE)" -ForegroundColor Red
+    Write-Host "ERROR: Build failed (exit code: $LASTEXITCODE)" -ForegroundColor Red
     Write-Host "Fix the build errors above and try again" -ForegroundColor Yellow
     Write-Host ""
     exit 1
 }
 
 Write-Host ""
-Write-Host "Initial build completed successfully!" -ForegroundColor Green
+Write-Host "Build completed successfully!" -ForegroundColor Green
 
-# Step 3: Start all applications in watch mode
+# Step 3: Start all applications
 Write-Host ""
-Write-Host "Step 3 of 3: Starting all applications in watch mode..." -ForegroundColor Yellow
+Write-Host "Step 3 of 3: Starting all applications..." -ForegroundColor Yellow
 Write-Host ""
 
 # Get all remotes (already validated by build script, but we need the list to start them)
-$remotes = & "$PSScriptRoot\utils-get-remotes.ps1"
+$remotes = & "$PSScriptRoot\..\utils\utils-get-remotes.ps1"
 
 # Count remotes
 $remoteCount = ($remotes | Measure-Object).Count
 
-Write-Host "Starting $remoteCount remote(s) in watch mode..." -ForegroundColor Cyan
+Write-Host "Starting $remoteCount remote(s) in preview mode..." -ForegroundColor Cyan
 Write-Host ""
 
-# Start each remote in watch mode (auto-rebuild + preview server)
+# Start each remote in preview mode (serves built dist folder)
 foreach ($remote in $remotes) {
-    Write-Host "  Starting: $($remote.Name) on port $($remote.Port) (watch mode)" -ForegroundColor Green
+    Write-Host "  Starting: $($remote.Name) on port $($remote.Port)" -ForegroundColor Green
     
     Start-Process powershell `
-        -ArgumentList "-NoExit", "-Command", "cd '$($remote.Path)'; npm run dev:watch" `
+        -ArgumentList "-NoExit", "-Command", "cd '$($remote.Path)'; npm run preview" `
         -WindowStyle Normal
     
     # Small delay between starts to prevent race conditions
@@ -134,10 +133,10 @@ foreach ($remote in $remotes) {
 
 # Start host application
 # Path to host (derived from script root)
-$hostPath = Join-Path $PSScriptRoot "..\host"
+$hostPath = Join-Path $PSScriptRoot "..\..\host-react-mf"
 
 Write-Host ""
-Write-Host "  Starting: host on port 5000 (dev mode)" -ForegroundColor Green
+Write-Host "  Starting: host on port 5000" -ForegroundColor Green
 
 Start-Process powershell `
     -ArgumentList "-NoExit", "-Command", "cd '$hostPath'; npm run dev" `
@@ -146,16 +145,14 @@ Start-Process powershell `
 # Display summary
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "All Applications Started in Watch Mode" -ForegroundColor Cyan
+Write-Host "All Applications Started" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Remotes (watch mode - auto-rebuild on file change):" -ForegroundColor Yellow
+Write-Host "Remotes (preview mode - production builds):" -ForegroundColor Yellow
 foreach ($remote in $remotes) {
     Write-Host "  http://localhost:$($remote.Port) - $($remote.Name)" -ForegroundColor White
 }
 Write-Host ""
 Write-Host "Host (dev mode):" -ForegroundColor Yellow
 Write-Host "  http://localhost:5000" -ForegroundColor White
-Write-Host ""
-Write-Host "Files will automatically rebuild when changed!" -ForegroundColor Green
 Write-Host ""

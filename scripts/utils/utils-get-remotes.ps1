@@ -15,7 +15,7 @@
 #>
 
 # Base path for remotes directory
-$remotesPath = Join-Path $PSScriptRoot "..\remotes"
+$remotesPath = Join-Path $PSScriptRoot "..\..\remotes"
 
 # Check if remotes directory exists
 if (-not (Test-Path $remotesPath)) {

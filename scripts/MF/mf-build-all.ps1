@@ -1,33 +1,33 @@
 <#
 .SYNOPSIS
-    Build all Web Components in parallel
+    Build all Module Federation remotes in parallel
 
 .DESCRIPTION
-    Builds all remotes as standalone web components
-    - Deletes old dist-webcomponent folders before building (prevents stale builds)
+    Builds all remote applications for Module Federation
+    - Deletes old dist folders before building (prevents stale builds)
     - Runs builds in parallel for speed
     - Verifies build outputs exist
     - Shows detailed error messages on failure
 
 .EXAMPLE
-    .\scripts\wc-build-all.ps1
+    .\scripts\mf-build-all.ps1
 #>
 
 # Stop on any error
 $ErrorActionPreference = "Stop"
 
-# Import Web Component build utilities
-. "$PSScriptRoot\utils-build-wc.ps1"
+# Import Module Federation build utilities
+. "$PSScriptRoot\..\utils\utils-build-mf.ps1"
 
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "Web Components: Build All" -ForegroundColor Cyan
+Write-Host "Module Federation: Build All Remotes" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 
 # Get all remotes from package.json metadata
 Write-Host ""
 Write-Host "Discovering remotes..." -ForegroundColor Yellow
-$remotes = & "$PSScriptRoot\utils-get-remotes.ps1"
+$remotes = & "$PSScriptRoot\..\utils\utils-get-remotes.ps1"
 
 # Validate remotes were found
 $remoteCount = ($remotes | Measure-Object).Count
@@ -40,15 +40,15 @@ if (-not $remotes -or $remoteCount -eq 0) {
 
 Write-Host "Found $remoteCount remotes:" -ForegroundColor Green
 foreach ($remote in $remotes) {
-    Write-Host "  - $($remote.Name)" -ForegroundColor White
+    Write-Host "  - $($remote.Name) ($($remote.Type)) on port $($remote.Port)" -ForegroundColor White
 }
 
 # Execute parallel builds using the utility function
-$buildResult = Build-AllWebComponents -Remotes $remotes
+$buildResult = Build-AllMFRemotes -Remotes $remotes
 
 # Display results using the utility function
 # Returns $true if all builds succeeded, $false otherwise
-$allSuccess = Show-WCBuildResults -Results $buildResult.Results -TotalDuration $buildResult.TotalDuration
+$allSuccess = Show-MFBuildResults -Results $buildResult.Results -TotalDuration $buildResult.TotalDuration
 
 Write-Host ""
 
