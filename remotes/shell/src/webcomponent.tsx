@@ -46,17 +46,23 @@ class ShellWebComponent extends HTMLElement {
         break;
     }
 
-    this.mount();
+    this.render(); // Just re-render, don't remount
   }
 
   private mount() {
-    if (this.root) {
-      this.root.unmount();
-    }
+    // Only mount once
+    if (this.root) return;
 
     this.innerHTML = "";
     const mountPoint = document.createElement("div");
     this.appendChild(mountPoint);
+
+    this.root = ReactDOM.createRoot(mountPoint);
+    this.render();
+  }
+
+  private render() {
+    if (!this.root) return;
 
     const theme = createWebComponentTheme(this.themeMode);
 
@@ -79,7 +85,6 @@ class ShellWebComponent extends HTMLElement {
       );
     };
 
-    this.root = ReactDOM.createRoot(mountPoint);
     this.root.render(
       <React.StrictMode>
         <ThemeProvider theme={theme}>

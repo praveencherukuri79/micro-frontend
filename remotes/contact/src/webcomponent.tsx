@@ -31,25 +31,30 @@ class ContactWebComponent extends HTMLElement {
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (name === "theme" && oldValue !== newValue) {
       this.themeMode = getThemeMode(newValue);
-      this.mount();
+      this.render(); // Just re-render, don't remount
     } else if (name === "api-base-path" && oldValue !== newValue) {
       this.apiBasePath = newValue || window.location.origin;
-      this.mount();
+      this.render(); // Just re-render, don't remount
     }
   }
 
   private mount() {
-    if (this.root) {
-      this.root.unmount();
-    }
+    // Only mount once
+    if (this.root) return;
 
     this.innerHTML = "";
     const mountPoint = document.createElement("div");
     this.appendChild(mountPoint);
 
+    this.root = ReactDOM.createRoot(mountPoint);
+    this.render();
+  }
+
+  private render() {
+    if (!this.root) return;
+
     const theme = createWebComponentTheme(this.themeMode);
 
-    this.root = ReactDOM.createRoot(mountPoint);
     this.root.render(
       <React.StrictMode>
         <ThemeProvider theme={theme}>
