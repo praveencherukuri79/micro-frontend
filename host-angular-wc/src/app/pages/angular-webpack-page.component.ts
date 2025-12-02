@@ -3,11 +3,11 @@ import { Subscription } from 'rxjs';
 import { ThemeService, ThemeMode } from '../services/theme.service';
 
 @Component({
-  selector: 'app-contact-page',
-  templateUrl: './contact-page.component.html',
-  styleUrls: ['./contact-page.component.css']
+  selector: 'app-angular-webpack-page',
+  templateUrl: './angular-webpack-page.component.html',
+  styleUrls: ['./angular-webpack-page.component.css']
 })
-export class ContactPageComponent implements OnInit, OnDestroy {
+export class AngularWebpackPageComponent implements OnInit, OnDestroy {
   loading = true;
   error: string | null = null;
   theme: ThemeMode = 'light';
@@ -31,35 +31,37 @@ export class ContactPageComponent implements OnInit, OnDestroy {
   private async loadWidget(): Promise<void> {
     try {
       // Check if already defined
-      if (customElements.get('contact-widget')) {
+      if (customElements.get('angular-webpack-widget')) {
         this.loading = false;
         return;
       }
 
       const script = document.createElement('script');
-      script.src = '/widgets/contact-widget.js';
+      script.src = '/widgets/angular-webpack-widget.js';
       script.type = 'module'; // Important for ES modules
 
       await new Promise<void>((resolve, reject) => {
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load contact widget'));
+        script.onerror = () => reject(new Error('Failed to load angular-webpack widget'));
         document.head.appendChild(script);
       });
 
-      await customElements.whenDefined('contact-widget');
+      await customElements.whenDefined('angular-webpack-widget');
       this.loading = false;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       this.error = errorMsg;
       this.loading = false;
-      console.error('Error loading contact widget:', err);
+      console.error('Error loading angular-webpack widget:', err);
     }
   }
 
   private updateWidgetTheme(): void {
-    const widget = document.querySelector('contact-widget');
+    const widget = document.querySelector('angular-webpack-widget');
     if (widget) {
       widget.setAttribute('theme', this.theme);
+      widget.setAttribute('api-base-path', this.apiBasePath);
     }
   }
 }
+

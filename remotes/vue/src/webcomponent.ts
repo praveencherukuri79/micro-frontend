@@ -56,11 +56,36 @@ class VueWebComponent extends HTMLElement {
       // Clear existing content
       this.innerHTML = "";
 
-      // Inject CSS into document head (only once)
+      // Inject CSS into document head (only once) - scoped to vue-widget
       if (!document.getElementById("vue-widget-styles")) {
         const style = document.createElement("style");
         style.id = "vue-widget-styles";
-        style.textContent = appCSS;
+        // Scope all CSS rules to vue-widget custom element to prevent style leakage
+        // This ensures Vue styles don't affect the host application
+        const scopedCSS = appCSS.replace(
+          /([^{}@]+)\{([^}]+)\}/g,
+          (match, selector, rules) => {
+            // Skip @rules (keyframes, media queries, etc.)
+            if (selector.trim().startsWith('@')) {
+              return match;
+            }
+            // Scope each selector to vue-widget
+            const scopedSelectors = selector
+              .split(',')
+              .map((s: string) => s.trim())
+              .map((s: string) => {
+                // Don't modify if already scoped or is a pseudo-element
+                if (s.includes('vue-widget') || s.startsWith('::')) {
+                  return s;
+                }
+                // Prepend vue-widget to scope the selector
+                return `vue-widget ${s}`;
+              })
+              .join(', ');
+            return `${scopedSelectors} {${rules}}`;
+          }
+        );
+        style.textContent = scopedCSS;
         document.head.appendChild(style);
       }
 

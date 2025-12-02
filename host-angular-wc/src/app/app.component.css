@@ -1,0 +1,82 @@
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  /* Prevent Vue widget styles from affecting host container */
+  padding: 0 !important;
+}
+
+.header-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: var(--primary-color, #1976d2);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-fallback h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.header-fallback nav {
+  display: flex;
+  gap: 1.5rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.header-fallback nav a {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.header-fallback nav a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.header-fallback nav a.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+}
+
+.theme-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.main-content {
+  flex: 1;
+  min-height: 0;
+}
+
+.footer-fallback {
+  padding: 2rem;
+  text-align: center;
+  background: var(--footer-bg, #f5f5f5);
+  color: var(--footer-text, #666);
+  border-top: 1px solid var(--border-color, #e0e0e0);
+}
+
+[data-theme="dark"] .footer-fallback {
+  background: var(--footer-bg-dark, #1e1e1e);
+  color: var(--footer-text-dark, #b0b0b0);
+  border-top-color: var(--border-color-dark, #333);
+}
+

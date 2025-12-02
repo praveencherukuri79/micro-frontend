@@ -1,0 +1,18 @@
+<div class="page-container">
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading Angular Vite remote...</p>
+  </div>
+  <div *ngIf="error" class="error">
+    <p class="error-title">Failed to load Angular Vite Remote</p>
+    <p class="error-message">{{ error }}</p>
+    <p class="error-hint">
+      Make sure the Angular Vite remote is running on
+      <code>http://localhost:5006</code> and built.
+    </p>
+    <button class="btn-retry" (click)="loadRemote()">Try Again</button>
+  </div>
+  <div #container class="remote-container" [style.display]="loading || error ? 'none' : 'block'">
+    <!-- Angular Vite remote will be mounted here -->
+  </div>
+</div>

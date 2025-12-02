@@ -1,0 +1,18 @@
+<div class="page-container">
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading Vue remote...</p>
+  </div>
+  <div *ngIf="error" class="error">
+    <p class="error-title">Failed to load Vue Remote</p>
+    <p class="error-message">{{ error }}</p>
+    <p class="error-hint">
+      Make sure the Vue remote is running on
+      <code>http://localhost:5005</code> and built.
+    </p>
+    <button class="btn-retry" (click)="loadRemote()">Try Again</button>
+  </div>
+  <div #container class="remote-container" [style.display]="loading || error ? 'none' : 'block'">
+    <!-- Vue remote will be mounted here -->
+  </div>
+</div>

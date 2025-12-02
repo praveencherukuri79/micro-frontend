@@ -1,0 +1,18 @@
+<div class="page-container">
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading Vue widget...</p>
+  </div>
+  <div *ngIf="error" class="error">
+    <p class="error-title">Failed to load Vue Widget</p>
+    <p class="error-message">{{ error }}</p>
+    <p class="error-hint">
+      Make sure the Vue widget is built and copied to
+      <code>/widgets/vue-widget.js</code>
+    </p>
+  </div>
+  <div *ngIf="!loading && !error" class="widget-container">
+    <vue-widget [attr.theme]="theme"></vue-widget>
+  </div>
+</div>
+

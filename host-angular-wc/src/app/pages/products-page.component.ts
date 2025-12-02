@@ -1,72 +1,65 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { ThemeService, ThemeMode } from '../services/theme.service';
 
 @Component({
   selector: 'app-products-page',
-  template: `
-    <div class="page-container">
-      <div *ngIf="loading" class="loading">Loading products widget...</div>
-      <products-widget 
-        *ngIf="!loading"
-        [attr.theme]="theme"
-        [attr.api-base-path]="apiBasePath">
-      </products-widget>
-    </div>
-  `,
-  styles: [
-    `
-      .page-container {
-        min-height: 400px;
-      }
-      .loading {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 200px;
-        color: #666;
-        font-style: italic;
-      }
-    `,
-  ],
+  templateUrl: './products-page.component.html',
+  styleUrls: ['./products-page.component.css']
 })
-export class ProductsPageComponent implements OnInit {
+export class ProductsPageComponent implements OnInit, OnDestroy {
   loading = true;
-  theme = 'light';
+  error: string | null = null;
+  theme: ThemeMode = 'light';
   apiBasePath = window.location.origin;
+  private themeSubscription?: Subscription;
+
+  constructor(private themeService: ThemeService) {}
 
   ngOnInit(): void {
-    this.loadWebComponent('/widgets/products-widget.js', 'products-widget');
-    this.updateTheme();
+    this.themeSubscription = this.themeService.theme$.subscribe(theme => {
+      this.theme = theme;
+      this.updateWidgetTheme();
+    });
+    this.loadWidget();
   }
 
-  private async loadWebComponent(src: string, tagName: string): Promise<void> {
-    // Check if already defined
-    if (customElements.get(tagName)) {
-      this.loading = false;
-      return;
-    }
+  ngOnDestroy(): void {
+    this.themeSubscription?.unsubscribe();
+  }
 
+  private async loadWidget(): Promise<void> {
     try {
+      // Check if already defined
+      if (customElements.get('products-widget')) {
+        this.loading = false;
+        return;
+      }
+
       const script = document.createElement('script');
-      script.src = src;
-      script.async = true;
-      
+      script.src = '/widgets/products-widget.js';
+      script.type = 'module'; // Important for ES modules
+
       await new Promise<void>((resolve, reject) => {
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error(`Failed to load ${src}`));
+        script.onerror = () => reject(new Error('Failed to load products widget'));
         document.head.appendChild(script);
       });
 
-      // Wait for custom element to be defined
-      await customElements.whenDefined(tagName);
+      await customElements.whenDefined('products-widget');
       this.loading = false;
-    } catch (error) {
-      console.error('Error loading web component:', error);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      this.error = errorMsg;
       this.loading = false;
+      console.error('Error loading products widget:', err);
     }
   }
 
-  private updateTheme(): void {
-    this.theme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+  private updateWidgetTheme(): void {
+    const widget = document.querySelector('products-widget');
+    if (widget) {
+      widget.setAttribute('theme', this.theme);
+    }
   }
 }
-

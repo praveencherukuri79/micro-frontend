@@ -1,0 +1,20 @@
+<div class="page-container">
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading products widget...</p>
+  </div>
+  <div *ngIf="error" class="error">
+    <p class="error-title">Failed to load Products Widget</p>
+    <p class="error-message">{{ error }}</p>
+    <p class="error-hint">
+      Make sure the products widget is built and copied to
+      <code>/widgets/products-widget.js</code>
+    </p>
+  </div>
+  <products-widget 
+    *ngIf="!loading && !error"
+    [attr.theme]="theme"
+    [attr.api-base-path]="apiBasePath">
+  </products-widget>
+</div>
+

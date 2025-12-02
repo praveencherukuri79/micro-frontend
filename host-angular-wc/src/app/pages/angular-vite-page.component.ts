@@ -3,15 +3,14 @@ import { Subscription } from 'rxjs';
 import { ThemeService, ThemeMode } from '../services/theme.service';
 
 @Component({
-  selector: 'app-contact-page',
-  templateUrl: './contact-page.component.html',
-  styleUrls: ['./contact-page.component.css']
+  selector: 'app-angular-vite-page',
+  templateUrl: './angular-vite-page.component.html',
+  styleUrls: ['./angular-vite-page.component.css']
 })
-export class ContactPageComponent implements OnInit, OnDestroy {
+export class AngularVitePageComponent implements OnInit, OnDestroy {
   loading = true;
   error: string | null = null;
   theme: ThemeMode = 'light';
-  apiBasePath = window.location.origin;
   private themeSubscription?: Subscription;
 
   constructor(private themeService: ThemeService) {}
@@ -31,35 +30,36 @@ export class ContactPageComponent implements OnInit, OnDestroy {
   private async loadWidget(): Promise<void> {
     try {
       // Check if already defined
-      if (customElements.get('contact-widget')) {
+      if (customElements.get('angular-vite-widget')) {
         this.loading = false;
         return;
       }
 
       const script = document.createElement('script');
-      script.src = '/widgets/contact-widget.js';
+      script.src = '/widgets/angular-vite-widget.js';
       script.type = 'module'; // Important for ES modules
 
       await new Promise<void>((resolve, reject) => {
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load contact widget'));
+        script.onerror = () => reject(new Error('Failed to load angular-vite widget'));
         document.head.appendChild(script);
       });
 
-      await customElements.whenDefined('contact-widget');
+      await customElements.whenDefined('angular-vite-widget');
       this.loading = false;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       this.error = errorMsg;
       this.loading = false;
-      console.error('Error loading contact widget:', err);
+      console.error('Error loading angular-vite widget:', err);
     }
   }
 
   private updateWidgetTheme(): void {
-    const widget = document.querySelector('contact-widget');
+    const widget = document.querySelector('angular-vite-widget');
     if (widget) {
       widget.setAttribute('theme', this.theme);
     }
   }
 }
+

@@ -1,0 +1,41 @@
+<div class="app-container" [attr.data-theme]="currentTheme">
+  <!-- Shell Header (Web Component) -->
+  <shell-widget 
+    *ngIf="shellLoaded"
+    component="header"
+    [attr.theme]="currentTheme"
+    [attr.cart-count]="cartCount">
+  </shell-widget>
+
+  <!-- Fallback header while shell loads -->
+  <header *ngIf="!shellLoaded" class="header-fallback">
+    <h1>Angular MF Host</h1>
+    <nav>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+      <a routerLink="/products" routerLinkActive="active">Products</a>
+      <a routerLink="/contact" routerLinkActive="active">Contact</a>
+      <a routerLink="/angular-webpack" routerLinkActive="active">Angular WP</a>
+      <a routerLink="/angular-vite" routerLinkActive="active">Angular Vite</a>
+      <a routerLink="/vue" routerLinkActive="active">Vue</a>
+    </nav>
+    <button (click)="toggleTheme()" class="theme-toggle">
+      {{ currentTheme === 'dark' ? '☀️ Light' : '🌙 Dark' }}
+    </button>
+  </header>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Shell Footer (Web Component) -->
+  <shell-widget 
+    *ngIf="shellLoaded"
+    component="footer"
+    [attr.theme]="currentTheme">
+  </shell-widget>
+
+  <!-- Fallback footer while shell loads -->
+  <footer *ngIf="!shellLoaded" class="footer-fallback">
+    <p>Angular Module Federation Host - Port 5007</p>
+  </footer>
+</div>

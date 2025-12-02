@@ -1,7 +1,5 @@
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { AppModule } from './app/app.module';
-
-platformBrowserDynamic()
-  .bootstrapModule(AppModule)
-  .catch((err) => console.error(err));
+// Lazy bootstrap pattern for Module Federation
+// Creates async boundary to prevent eager consumption of shared modules
+import('./bootstrap')
+  .catch(err => console.error(err));
 

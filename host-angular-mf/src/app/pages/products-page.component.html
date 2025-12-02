@@ -1,0 +1,17 @@
+<div class="page-container">
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading Products remote...</p>
+  </div>
+  <div *ngIf="error" class="error">
+    <p class="error-title">Failed to load Products Remote</p>
+    <p class="error-message">{{ error }}</p>
+    <p class="error-hint">
+      Make sure the Products remote is running on
+      <code>http://localhost:5001</code> and built.
+    </p>
+  </div>
+  <div #container class="remote-container" [style.display]="loading || error ? 'none' : 'block'">
+    <!-- Products remote will be mounted here -->
+  </div>
+</div>

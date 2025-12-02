@@ -3,15 +3,14 @@ import { Subscription } from 'rxjs';
 import { ThemeService, ThemeMode } from '../services/theme.service';
 
 @Component({
-  selector: 'app-contact-page',
-  templateUrl: './contact-page.component.html',
-  styleUrls: ['./contact-page.component.css']
+  selector: 'app-vue-page',
+  templateUrl: './vue-page.component.html',
+  styleUrls: ['./vue-page.component.css']
 })
-export class ContactPageComponent implements OnInit, OnDestroy {
+export class VuePageComponent implements OnInit, OnDestroy {
   loading = true;
   error: string | null = null;
   theme: ThemeMode = 'light';
-  apiBasePath = window.location.origin;
   private themeSubscription?: Subscription;
 
   constructor(private themeService: ThemeService) {}
@@ -31,35 +30,36 @@ export class ContactPageComponent implements OnInit, OnDestroy {
   private async loadWidget(): Promise<void> {
     try {
       // Check if already defined
-      if (customElements.get('contact-widget')) {
+      if (customElements.get('vue-widget')) {
         this.loading = false;
         return;
       }
 
       const script = document.createElement('script');
-      script.src = '/widgets/contact-widget.js';
+      script.src = '/widgets/vue-widget.js';
       script.type = 'module'; // Important for ES modules
 
       await new Promise<void>((resolve, reject) => {
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load contact widget'));
+        script.onerror = () => reject(new Error('Failed to load vue widget'));
         document.head.appendChild(script);
       });
 
-      await customElements.whenDefined('contact-widget');
+      await customElements.whenDefined('vue-widget');
       this.loading = false;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       this.error = errorMsg;
       this.loading = false;
-      console.error('Error loading contact widget:', err);
+      console.error('Error loading vue widget:', err);
     }
   }
 
   private updateWidgetTheme(): void {
-    const widget = document.querySelector('contact-widget');
+    const widget = document.querySelector('vue-widget');
     if (widget) {
       widget.setAttribute('theme', this.theme);
     }
   }
 }
+

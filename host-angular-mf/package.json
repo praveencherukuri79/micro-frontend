@@ -31,7 +31,8 @@
     "@angular/compiler-cli": "^17.3.0",
     "@types/jasmine": "~5.1.0",
     "http-server": "^14.1.1",
-    "typescript": "~5.4.2"
+    "typescript": "~5.4.2",
+    "webpack": "^5.89.0"
   },
   "host": {
     "type": "angular-mf",
